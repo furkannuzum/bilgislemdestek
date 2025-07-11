@@ -6,15 +6,14 @@ const {
     deleteDepartment 
 } = require('../Controllers/departmentsController');
 
-// Middleware'leri import et
 const { protect, authorize } = require('../middleware/auth');
 
 // Rotaları ve yetkilerini tanımla
 router.route('/')
-    .get(protect, getDepartments) // Tüm birimleri listelemek için sadece giriş yapmak yeterli
-    .post(protect, authorize('Admin'), createDepartment); // Yeni birim oluşturmak için hem giriş yapmak hem de 'Admin' olmak GEREKLİ
+    .get(getDepartments) // <-- 'protect' buradan kaldırıldı! Artık herkes erişebilir.
+    .post(protect, authorize('Admin'), createDepartment); // Yeni birim oluşturmak hala korumalı.
 
 router.route('/:id')
-    .delete(protect, authorize('Admin'), deleteDepartment); // Birim silmek için 'Admin' olmak GEREKLİ
+    .delete(protect, authorize('Admin'), deleteDepartment); // Silmek de korumalı.
 
 module.exports = router;

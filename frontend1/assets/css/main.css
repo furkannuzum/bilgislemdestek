@@ -1,0 +1,13 @@
+/* frontend/assets/css/main.css */
+/* --- Ortak Kart Stili --- */
+.card-base {
+  @apply bg-white rounded-2xl shadow-lg w-full text-center mx-auto transition-all duration-200;
+  @apply max-w-sm p-8 mt-8;
+  @apply md:max-w-md md:p-12 md:mt-10;
+  @apply lg:max-w-lg lg:p-16 lg:mt-16;
+}
+
+/* --- Ortak Birincil Buton Stili --- */
+.btn-primary {
+  @apply inline-block px-10 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors cursor-pointer;
+}
