@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { getStats } = require('../Controllers/analyticsController');
 
-const { protect, authorize } = require('../middleware/auth');
+// Sadece protect'i bırakıyoruz
+const { protect } = require('../middleware/auth');
 
-// Bu rotaya sadece Admin ve IT Ajanları erişebilmeli
-router.get('/stats', protect, authorize('Admin', 'ITAgent'), getStats);
+// Rota artık sadece giriş yapmış olmayı (protect) gerektiriyor,
+// belirli bir role sahip olmayı (authorize) değil.
+router.get('/stats', protect, getStats); // <-- 'authorize(...)' buradan kaldırıldı!
 
 module.exports = router;
