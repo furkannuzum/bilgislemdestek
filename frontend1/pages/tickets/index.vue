@@ -70,8 +70,9 @@
 </template>
 
 <script setup>
-// Script bölümünde herhangi bir değişiklik yok.
-import { ref, computed } from "vue";
-import { useAuthStore } from "~/stores/auth";
-// ... diğer script kodları ...
+definePageMeta({
+  layout: 'default', // <-- Bu satır önemli
+  middleware: 'auth' 
+});
+// ...
 </script>

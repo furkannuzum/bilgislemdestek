@@ -155,36 +155,34 @@
           <div v-else>Gösterilecek destek talebi bulunamadı.</div>
         </div>
 
-        <!-- Hızlı Aksiyonlar -->
-        <div>
-          <h2 class="text-lg font-semibold mb-4">Hızlı Aksiyonlar</h2>
-          <div class="space-y-3">
-            <UButton
-              to="/tickets/new"
-              label="Yeni Destek Talebi Oluştur"
-              icon="i-heroicons-plus-circle"
-              size="lg"
-              block
-            />
-            <UButton
-              to="/requests/new"
-              label="Yeni Cihaz Talebi Oluştur"
-              icon="i-heroicons-plus-circle"
-              color="gray"
-              size="lg"
-              block
-            />
-            <UButton
-              v-if="authStore.userRole !== 'EndUser'"
-              to="/reports"
-              label="Raporları Görüntüle"
-              icon="i-heroicons-chart-pie"
-              color="white"
-              size="lg"
-              block
-            />
-          </div>
+        <!-- ... -->
+      <!-- ... -->
+      <!-- Hızlı Aksiyonlar -->
+      <div>
+        <h2 class="text-lg font-semibold mb-4">Hızlı Aksiyonlar</h2>
+        <div class="space-y-4">
+          
+          <!-- Yeni Destek Talebi (Mavi Buton) -->
+          <NuxtLink to="/tickets/new" class="flex items-center justify-center w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-lg px-5 py-3 text-center transition-colors">
+            <UIcon name="i-heroicons-plus-circle-20-solid" class="w-5 h-5 mr-2" />
+            <span>Yeni Destek Talebi Oluştur</span>
+          </NuxtLink>
+
+          <!-- Yeni Cihaz Talebi (İkincil Buton) -->
+           <NuxtLink to="/requests/new" class="flex items-center justify-center w-full  text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-lg px-5 py-3 text-center transition-colors">
+            <UIcon name="i-heroicons-plus-circle-20-solid" class="w-5 h-5 mr-2" />
+            <span>Yeni Cihaz Talebi Oluştur</span>
+          </NuxtLink>
+
+          <!-- Raporları Görüntüle (Üçüncül Buton) -->
+          <NuxtLink v-if="authStore.userRole !== 'EndUser'" to="/reports" class="flex items-center justify-center w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-lg px-5 py-3 text-center transition-colors border border-gray-300">
+            <UIcon name="i-heroicons-chart-pie-20-solid" class="w-5 h-5 mr-2" />
+            <span>Raporları Görüntüle</span>
+          </NuxtLink>
+
         </div>
+      </div>
+<!-- ... -->
       </div>
     </div>
   </div>
