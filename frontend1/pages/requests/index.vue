@@ -1,57 +1,83 @@
-<!-- frontend1/pages/requests/index.vue (GÜNCEL VE HATASIZ HALİ) -->
 <template>
-  <div class="space-y-6">
-    <!-- Sayfa Başlığı ve Yeni Talep Butonu -->
-    <div class="flex justify-between items-center">
+  <div class="w-full max-w-7xl mx-auto px-2 py-6">
+    <!-- Başlık ve Buton -->
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Cihaz Talepleri</h1>
-        <!-- 
-          GÜNCELLEME:
-          `authStore.user` objesi var olmadan `authStore.userRole`'ü okumaya çalışmamak için
-          bir `v-if` kontrolü ekliyoruz.
-        -->
-        <p v-if="authStore.user" class="mt-1 text-gray-500">
+        <h1 class="text-3xl font-bold text-gray-800">Cihaz Talepleri</h1>
+        <p v-if="authStore.user" class="mt-5 mb-5 text-gray-500">
            {{ authStore.userRole === 'EndUser' ? 'Oluşturduğunuz tüm cihaz taleplerini' : 'Tüm cihaz taleplerini' }} buradan yönetebilirsiniz.
         </p>
       </div>
-      <UButton to="/requests/new" icon="i-heroicons-plus-circle-20-solid" size="lg">
+      <UButton
+        to="/requests/new"
+        icon="i-heroicons-plus-circle-20-solid"
+        size="lg"
+        class="rounded-full px-6 py-3 font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow"
+      >
         Yeni Cihaz Talebi Oluştur
       </UButton>
     </div>
 
     <!-- Filtreleme ve Arama Alanı -->
-    <UCard>
-      <div class="flex items-center space-x-4">
-        <UInput v-model="searchQuery" class="flex-grow" icon="i-heroicons-magnifying-glass" placeholder="Talep ID'sine göre ara..." />
-        <USelectMenu v-model="selectedStatuses" :options="statusOptions" multiple placeholder="Duruma Göre Filtrele" />
+    <UCard class="mb-6 shadow-none border border-gray-100 bg-white">
+      <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+        <div class="flex-1 flex items-center">
+          <UInput
+            v-model="searchQuery"
+            icon="i-heroicons-magnifying-glass"
+            placeholder="Talep ID'sine göre ara..."
+            class="w-full form-input"
+          />
+        </div>
+        <div class="flex-1 flex items-center">
+          <USelectMenu
+            v-model="selectedStatuses"
+            :options="statusOptions"
+            multiple
+            placeholder="Duruma Göre Filtrele"
+            class="w-full form-input"
+          />
+        </div>
       </div>
     </UCard>
 
-    <!-- Talepleri Listeleyen Tablo -->
-    <div v-if="pending" class="text-center py-10">Talepler yükleniyor...</div>
+    <!-- TABLO (responsive ve kaydırmasız) -->
+    <div v-if="pending" class="text-center py-10 text-gray-500">Talepler yükleniyor...</div>
     <div v-else-if="error" class="text-center py-10 text-red-500">Talepler yüklenirken bir hata oluştu.</div>
     <div v-else>
-      <UTable :rows="filteredRequests" :columns="columns" :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'Gösterilecek cihaz talebi bulunamadı.' }">
-        <!-- Durum (Status) Sütununu Özelleştirme -->
-        <template #status-data="{ row }">
-          <UBadge :color="statusColors[row.status] || 'gray'" variant="soft">{{ row.status }}</UBadge>
-        </template>
-        
-        <!-- Kategori (productCategory) Sütununu Özelleştirme -->
-        <template #productCategory-data="{ row }">
-          <span v-if="row.productCategory">{{ row.productCategory.name }}</span>
-        </template>
-
-        <!-- Talep Eden (requestedBy) Sütununu Özelleştirme -->
-        <template #requestedBy-data="{ row }">
-          <span v-if="row.requestedBy">{{ row.requestedBy.fullName }}</span>
-        </template>
-
-        <!-- Oluşturulma Tarihi Sütununu Formatlama -->
-         <template #createdAt-data="{ row }">
-          <span>{{ new Date(row.createdAt).toLocaleDateString('tr-TR') }}</span>
-        </template>
-      </UTable>
+      <div class="overflow-x-auto rounded-2xl shadow border border-gray-100 bg-white">
+        <UTable
+          :rows="filteredRequests"
+          :columns="columns"
+          :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'Gösterilecek cihaz talebi bulunamadı.' }"
+          class="min-w-full"
+        >
+          <!-- Talep ID -->
+          <template #requestId-data="{ row }">
+            <span class="text-blue-600 font-medium">{{ row.requestId }}</span>
+          </template>
+          <!-- Ürün Kategorisi -->
+          <template #productCategory-data="{ row }">
+            <span class="block max-w-[120px] truncate" :title="row.productCategory?.name">{{ row.productCategory?.name }}</span>
+          </template>
+          <!-- Durum -->
+          <template #status-data="{ row }">
+            <UBadge
+              :color="statusColors[row.status] || 'gray'"
+              variant="soft"
+              class="rounded-full px-2 py-1 text-xs"
+            >{{ row.status }}</UBadge>
+          </template>
+          <!-- Talep Eden (md ve üstünde göster) -->
+          <template #requestedBy-data="{ row }">
+            <span class="hidden md:inline">{{ row.requestedBy?.fullName }}</span>
+          </template>
+          <!-- Oluşturulma Tarihi -->
+          <template #createdAt-data="{ row }">
+            {{ new Date(row.createdAt).toLocaleDateString('tr-TR') }}
+          </template>
+        </UTable>
+      </div>
     </div>
   </div>
 </template>
@@ -64,45 +90,37 @@ definePageMeta({ layout: 'default', middleware: 'auth' });
 
 const authStore = useAuthStore();
 
-// --- Tablo Sütunlarını Tanımlama ---
+// Tablo sütunları: Kısa, sade ve mobil uyumlu!
 const columns = [
   { key: 'requestId', label: 'Talep ID' },
-  { key: 'productCategory', label: 'Ürün Kategorisi' },
+  { key: 'productCategory', label: 'Kategori' }, // kısaltıldı
   { key: 'status', label: 'Durum' },
-  { key: 'requestedBy', label: 'Talep Eden' },
-  { key: 'createdAt', label: 'Oluşturulma Tarihi' },
+  { key: 'requestedBy', label: 'Eden' }, // kısaltıldı
+  { key: 'createdAt', label: 'Tarih' } // kısaltıldı
 ];
 
-// --- Veri Çekme ---
 const { data: requestsData, pending, error } = await useFetch('/api/devicerequests', {
   lazy: true,
   headers: { Authorization: `Bearer ${authStore.token}` }
 });
 
-// --- Filtreleme Mantığı ---
 const searchQuery = ref('');
 const statusOptions = ['PendingApproval', 'Approved', 'Rejected', 'Ordered', 'Delivered', 'Cancelled'];
 const selectedStatuses = ref([]);
 
 const filteredRequests = computed(() => {
   let requests = requestsData.value?.data || [];
-  
-  // Arama filtresi
   if (searchQuery.value) {
-    requests = requests.filter(request => 
+    requests = requests.filter(request =>
       request.requestId.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
   }
-
-  // Durum filtresi
   if (selectedStatuses.value.length > 0) {
     requests = requests.filter(request => selectedStatuses.value.includes(request.status));
   }
-  
   return requests;
 });
 
-// --- Renk Eşleştirmeleri ---
 const statusColors = {
   PendingApproval: 'orange',
   Approved: 'green',
@@ -112,3 +130,9 @@ const statusColors = {
   Cancelled: 'gray'
 };
 </script>
+
+<style scoped>
+.form-input {
+  @apply block w-full rounded-full border-0 py-3 pl-11 pr-4 text-gray-900 bg-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6;
+}
+</style>
