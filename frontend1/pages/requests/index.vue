@@ -1,5 +1,6 @@
 <template>
   <div class="w-full max-w-7xl mx-auto px-2 py-6">
+
     <!-- Başlık ve Buton -->
     <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
       <div>
@@ -25,8 +26,15 @@
           <UInput
             v-model="searchQuery"
             icon="i-heroicons-magnifying-glass"
+            size="lg"
             placeholder="Talep ID'sine göre ara..."
-            class="w-full form-input"
+            :ui="{
+              base: 'w-full',
+              rounded: 'rounded-full',
+              color: { white: { outline: 'bg-gray-100 border-0' } },
+              ring: 'focus:ring-2 focus:ring-inset focus:ring-blue-500',
+              padding: { lg: 'py-3' }
+            }"
           />
         </div>
         <div class="flex-1 flex items-center">
@@ -34,8 +42,18 @@
             v-model="selectedStatuses"
             :options="statusOptions"
             multiple
+            size="lg"
             placeholder="Duruma Göre Filtrele"
-            class="w-full form-input"
+            value-attribute="value"
+            option-attribute="label"
+            :popper="{ placement: 'bottom-end' }"
+            :ui="{
+              base: 'w-full',
+              rounded: 'rounded-full',
+              color: { white: { outline: 'bg-gray-100 border-0' } },
+              ring: 'focus:ring-2 focus:ring-inset focus:ring-blue-500',
+              padding: { lg: 'py-3' }
+            }"
           />
         </div>
       </div>
@@ -66,7 +84,9 @@
               :color="statusColors[row.status] || 'gray'"
               variant="soft"
               class="rounded-full px-2 py-1 text-xs"
-            >{{ row.status }}</UBadge>
+            >
+              {{ statusTranslations[row.status] || row.status }}
+            </UBadge>
           </template>
           <!-- Talep Eden (md ve üstünde göster) -->
           <template #requestedBy-data="{ row }">
@@ -90,13 +110,13 @@ definePageMeta({ layout: 'default', middleware: 'auth' });
 
 const authStore = useAuthStore();
 
-// Tablo sütunları: Kısa, sade ve mobil uyumlu!
+// Tablo sütunları
 const columns = [
   { key: 'requestId', label: 'Talep ID' },
-  { key: 'productCategory', label: 'Kategori' }, // kısaltıldı
+  { key: 'productCategory', label: 'Kategori' },
   { key: 'status', label: 'Durum' },
-  { key: 'requestedBy', label: 'Eden' }, // kısaltıldı
-  { key: 'createdAt', label: 'Tarih' } // kısaltıldı
+  { key: 'requestedBy', label: 'Talep Eden' },
+  { key: 'createdAt', label: 'Tarih' }
 ];
 
 const { data: requestsData, pending, error } = await useFetch('/api/devicerequests', {
@@ -105,21 +125,27 @@ const { data: requestsData, pending, error } = await useFetch('/api/devicereques
 });
 
 const searchQuery = ref('');
-const statusOptions = ['PendingApproval', 'Approved', 'Rejected', 'Ordered', 'Delivered', 'Cancelled'];
+
+// Filtreleme için durum seçenekleri (Türkçeleştirildi)
+const statusOptions = [
+  { label: 'Onay Bekliyor', value: 'PendingApproval' },
+  { label: 'Onaylandı', value: 'Approved' },
+  { label: 'Reddedildi', value: 'Rejected' },
+  { label: 'Sipariş Edildi', value: 'Ordered' },
+  { label: 'Teslim Edildi', value: 'Delivered' },
+  { label: 'İptal Edildi', value: 'Cancelled' }
+];
 const selectedStatuses = ref([]);
 
-const filteredRequests = computed(() => {
-  let requests = requestsData.value?.data || [];
-  if (searchQuery.value) {
-    requests = requests.filter(request =>
-      request.requestId.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  }
-  if (selectedStatuses.value.length > 0) {
-    requests = requests.filter(request => selectedStatuses.value.includes(request.status));
-  }
-  return requests;
-});
+// Tablodaki durumları Türkçeleştirmek için harita
+const statusTranslations = {
+  PendingApproval: 'Onay Bekliyor',
+  Approved: 'Onaylandı',
+  Rejected: 'Reddedildi',
+  Ordered: 'Sipariş Edildi',
+  Delivered: 'Teslim Edildi',
+  Cancelled: 'İptal Edildi'
+};
 
 const statusColors = {
   PendingApproval: 'orange',
@@ -129,10 +155,24 @@ const statusColors = {
   Delivered: 'teal',
   Cancelled: 'gray'
 };
+
+const filteredRequests = computed(() => {
+  let requests = requestsData.value?.data || [];
+  
+  // Arama filtresi
+  if (searchQuery.value) {
+    requests = requests.filter(request =>
+      request.requestId.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  }
+  
+  // Durum filtresi
+  if (selectedStatuses.value.length > 0) {
+    requests = requests.filter(request => selectedStatuses.value.includes(request.status));
+  }
+  
+  return requests;
+});
 </script>
 
-<style scoped>
-.form-input {
-  @apply block w-full rounded-full border-0 py-3 pl-11 pr-4 text-gray-900 bg-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6;
-}
-</style>
+<!-- STYLE BLOĞU TAMAMEN KALDIRILDI -->
