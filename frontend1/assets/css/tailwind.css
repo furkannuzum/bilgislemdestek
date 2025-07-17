@@ -11,3 +11,17 @@
 @layer components {
   @import "./main.css";
 }
+
+select, option {
+  color: #111;
+}
+
+/* Naive UI Select seçili değeri ve açılır menü rengi siyah yap */
+.n-base-selection-label, 
+.n-base-selection-input, 
+.n-select .n-base-selection-label, 
+.n-base-selection-label__text, 
+.n-base-select-option__label {
+  color: #222 !important;
+  /* font-weight: 500;  // istersen kalın da yapabilirsin */
+}

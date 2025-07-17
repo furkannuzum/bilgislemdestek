@@ -14,7 +14,7 @@
       <!-- Kategori -->
       <UFormGroup label="Ürün Kategorisi" name="productCategory" required>
         <div class="relative">
-          <USelectMenu
+          <USelect
             v-model="state.productCategory"
             :options="productCategories"
             by="_id"
@@ -24,6 +24,7 @@
             size="lg"
             class="w-full"
             popper-class="z-[9999]"
+            :ui="{ color: { gray: { 'select-menu': { base: 'text-gray-900 dark:text-white' } } } }"
           />
         </div>
       </UFormGroup>
@@ -66,9 +67,9 @@ const router = useRouter()
 const toast = useToast()
 
 const schema = z.object({
-  productCategory: z.object({_id: z.string(), name: z.string()}, { required_error: "Ürün kategorisi seçimi zorunludur." }),
+  productCategory: z.string({ required_error: "Ürün kategorisi seçimi zorunludur." }),
   specs: z.string({ required_error: "Açıklama alanı zorunludur." }).min(10, 'Lütfen en az 10 karakterlik bir açıklama girin.'),
-})
+});
 
 const state = reactive({
   productCategory: undefined,

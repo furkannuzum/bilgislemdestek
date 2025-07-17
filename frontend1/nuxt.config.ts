@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     exposeConfig: true
   },
   
+
   // --- PROXY KURALI GÜNCELLEMESİ ---
   // Tek bir genel kural yerine, backend'e giden her bir yol için
   // ayrı ayrı ve daha spesifik proxy kuralları tanımlıyoruz.
