@@ -1,188 +1,173 @@
 <template>
-  <UCard>
-    <template #header>
-      <div class="flex items-center space-x-3">
-        <UIcon
-          name="i-heroicons-ticket-20-solid"
-          class="w-6 h-6 text-blue-600"
-        />
-        <h1 class="text-2xl mt-5 mb-5 font-bold">Yeni Destek Talebi Oluştur</h1>
+  <div class="w-full max-w-7xl mx-auto px-2 py-6">
+
+    <!-- Başlık ve Buton -->
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Cihaz Talepleri</h1>
+        <p v-if="authStore.user" class="mt-5 mb-5 text-gray-500">
+           {{ authStore.userRole === 'EndUser' ? 'Oluşturduğunuz tüm cihaz taleplerini' : 'Tüm cihaz taleplerini' }} buradan yönetebilirsiniz.
+        </p>
       </div>
-      <p class="text-gray-500 mt-4 mb-4 pl-9">
-        Lütfen yaşadığınız sorun veya talebinizle ilgili bilgileri girin.
-      </p>
-    </template>
+      <UButton
+        to="/requests/new"
+        icon="i-heroicons-plus-circle-20-solid"
+        size="lg"
+        class="rounded-full px-6 py-3 font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow"
+      >
+        Yeni Cihaz Talebi Oluştur
+      </UButton>
+    </div>
 
-    <UForm
-      :state="state"
-      :schema="schema"
-      @submit="handleCreateTicket"
-      class="space-y-5"
-    >
-      <UFormGroup label="Başlık" name="title" required>
-        <UInput
-          v-model="state.title"
-          placeholder="Örn: Yazıcım çıktı vermiyor"
-          size="lg"
-        />
-      </UFormGroup>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Kategori Seçimi -->
-        <UFormGroup label="Kategori" name="category" required>
-          <USelect
-            v-model="state.category"
-            :options="ticketCategories"
-            option-attribute="name"
-            by="_id"
-            value-attribute="_id"  
-            placeholder="Sorun kategorisi seçiniz..."
-            searchable
+    <!-- Filtreleme ve Arama Alanı (YENİ YAPI) -->
+    <UCard class="mb-6 shadow-none border border-gray-100 bg-white">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Arama Alanı -->
+        <UFormGroup label="Talep ID">
+          <UInput
+            v-model="searchQuery"
+            icon="i-heroicons-magnifying-glass"
             size="lg"
-            class="w-full"
-            :clearable="true"
+            placeholder="Talep ID'sine göre ara..."
           />
         </UFormGroup>
-
-        <!-- Öncelik -->
-        <UFormGroup label="Öncelik" name="priority" required>
+        
+        <!-- Durum Filtresi (İSTEDİĞİNİZ YAPI) -->
+        <UFormGroup label="Durum">
           <USelect
-              v-model="state.priority"
-              :options="priorityOptions"
-              size="lg"
-              class="w-full text-black"
+            v-model="selectedStatus"
+            :options="statusFilterOptions"
+            option-attribute="label"
+            value-attribute="value"
+            placeholder="Tüm Durumlar"
+            size="lg"
+            clearable
           />
         </UFormGroup>
+
+        <!-- Bu kısım boş bırakılabilir veya başka bir filtre eklenebilir -->
+        <div></div>
       </div>
+    </UCard>
 
-      <UFormGroup label="Açıklama" name="description" required>
-        <UTextarea
-          v-model="state.description"
-          :rows="6"
-          placeholder="Lütfen sorunu olabildiğince detaylı anlatın..."
-        />
-      </UFormGroup>
-
-      <UFormGroup label="Ekran Görüntüsü (İsteğe Bağlı)" name="attachment">
-        <input
-          type="file"
-          @change="handleFileChange"
-          accept="image/png, image/jpeg, image/gif"
-          class="file-input"
-        />
-      </UFormGroup>
-
-      <div class="flex justify-end pt-4">
-        <UButton
-          type="submit"
-          :loading="isLoading"
-          size="lg"
-          icon="i-heroicons-paper-airplane"
-          class="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-5 py-3 text-center transition-colors disabled:opacity-50 shadow"
+    <!-- TABLO -->
+    <div v-if="pending" class="text-center py-10 text-gray-500">Talepler yükleniyor...</div>
+    <div v-else-if="error" class="text-center py-10 text-red-500">Talepler yüklenirken bir hata oluştu.</div>
+    <div v-else>
+      <div class="overflow-x-auto rounded-2xl shadow border border-gray-100 bg-white">
+        <UTable
+          :rows="filteredRequests"
+          :columns="columns"
+          :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'Gösterilecek cihaz talebi bulunamadı.' }"
+          class="min-w-full"
         >
-          Destek Talebi Oluştur
-        </UButton>
+          <!-- Talep ID -->
+          <template #requestId-data="{ row }">
+            <span class="text-blue-600 font-medium">{{ row.requestId }}</span>
+          </template>
+          <!-- Ürün Kategorisi -->
+          <template #productCategory-data="{ row }">
+            <span class="block max-w-[120px] truncate" :title="row.productCategory?.name">{{ row.productCategory?.name }}</span>
+          </template>
+          <!-- Durum -->
+          <template #status-data="{ row }">
+            <UBadge
+              :color="statusColors[row.status] || 'gray'"
+              variant="soft"
+              class="rounded-full px-2 py-1 text-xs"
+            >
+              {{ statusTranslations[row.status] || row.status }}
+            </UBadge>
+          </template>
+          <!-- Talep Eden -->
+          <template #requestedBy-data="{ row }">
+            <span class="hidden md:inline">{{ row.requestedBy?.fullName }}</span>
+          </template>
+          <!-- Oluşturulma Tarihi -->
+          <template #createdAt-data="{ row }">
+            {{ new Date(row.createdAt).toLocaleDateString('tr-TR') }}
+          </template>
+        </UTable>
       </div>
-    </UForm>
-  </UCard>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
-import { z } from "zod";
-import { useAuthStore } from "~/stores/auth";
+import { ref, computed } from 'vue';
+import { useAuthStore } from '~/stores/auth';
 
-definePageMeta({ layout: "default", middleware: "auth" });
+definePageMeta({ layout: 'default', middleware: 'auth' });
 
 const authStore = useAuthStore();
-const router = useRouter();
-const toast = useToast();
-const priorityOptions = ["Low", "Medium", "High", "Urgent"];
 
-// 1. STATE'İ BURAYA YAZ
-const state = reactive({
-  productCategory: undefined, // string olacak
-  specs: undefined
+// Tablo sütunları
+const columns = [
+  { key: 'requestId', label: 'Talep ID' },
+  { key: 'productCategory', label: 'Kategori' },
+  { key: 'status', label: 'Durum' },
+  { key: 'requestedBy', label: 'Talep Eden' },
+  { key: 'createdAt', label: 'Tarih' }
+];
+
+const { data: requestsData, pending, error } = await useFetch('/api/devicerequests', {
+  lazy: true,
+  headers: { Authorization: `Bearer ${authStore.token}` }
 });
 
-// 2. ZOD ŞEMASINDAKİ category'yı string olarak değiştir:
-const schema = z.object({
-  productCategory: z.string({ required_error: "Ürün kategorisi seçimi zorunludur." }),
-  specs: z.string({ required_error: "Açıklama alanı zorunludur." }).min(10, 'Lütfen en az 10 karakterlik bir açıklama girin.'),
-});
+// --- FİLTRELEME DEĞİŞİKLİKLERİ ---
 
-// Kategoriler çekiliyor
-const ticketCategories = ref([]);
-const { data, error } = await useFetch("/api/categories?type=Ticket", {
-  headers: { Authorization: `Bearer ${authStore.token}` },
-});
-if (data.value?.success) {
-  ticketCategories.value = data.value.data;
-} else {
-  toast.add({
-    title: "Hata",
-    description: "Kategori listesi yüklenemedi.",
-    color: "red",
-  });
-}
+const searchQuery = ref('');
 
-function handleFileChange(event) {
-  const file = event.target.files[0];
-  if (file && file.size > 5 * 1024 * 1024) {
-    toast.add({
-      title: "Hata",
-      description: "Dosya boyutu 5MB'tan büyük olamaz.",
-      color: "red",
-    });
-    event.target.value = "";
-    return;
+// v-model artık tek bir değer tutacak (önceki gibi bir dizi değil)
+const selectedStatus = ref(''); // veya ref()
+
+// Filtre seçenekleri. `clearable` düzgün çalışsın diye başına "Tüm Durumlar" ekledim.
+const statusFilterOptions = [
+  { label: 'Tüm Durumlar', value: '' }, // Filtreyi temizlemek için
+  { label: 'Onay Bekliyor', value: 'PendingApproval' },
+  { label: 'Onaylandı', value: 'Approved' },
+  { label: 'Reddedildi', value: 'Rejected' },
+  { label: 'Sipariş Edildi', value: 'Ordered' },
+  { label: 'Teslim Edildi', value: 'Delivered' },
+  { label: 'İptal Edildi', value: 'Cancelled' }
+];
+
+// Tablodaki durumları Türkçeleştirmek için harita
+const statusTranslations = {
+  PendingApproval: 'Onay Bekliyor',
+  Approved: 'Onaylandı',
+  Rejected: 'Reddedildi',
+  Ordered: 'Sipariş Edildi',
+  Delivered: 'Teslim Edildi',
+  Cancelled: 'İptal Edildi'
+};
+
+const statusColors = {
+  PendingApproval: 'orange',
+  Approved: 'green',
+  Rejected: 'red',
+  Ordered: 'blue',
+  Delivered: 'teal',
+  Cancelled: 'gray'
+};
+
+// Filtreleme mantığı tekli seçime göre güncellendi
+const filteredRequests = computed(() => {
+  let requests = requestsData.value?.data || [];
+  
+  // Arama filtresi (değişiklik yok)
+  if (searchQuery.value) {
+    requests = requests.filter(request =>
+      request.requestId.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
   }
-  state.attachment = file || null;
-}
-
-const isLoading = ref(false);
-async function handleCreateTicket(event) {
-  isLoading.value = true;
-  try {
-    const ticketResponse = await $fetch("/api/tickets", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${authStore.token}` },
-      body: {
-        title: event.data.title,
-        category: event.data.category._id,
-        priority: event.data.priority,
-        description: event.data.description,
-      },
-    });
-    if (ticketResponse.success && state.attachment) {
-      const formData = new FormData();
-      formData.append("attachment", state.attachment);
-      await $fetch(`/api/tickets/${ticketResponse.data._id}/upload`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${authStore.token}` },
-        body: formData,
-      });
-    }
-    toast.add({
-      title: "Başarılı!",
-      description: "Destek talebiniz oluşturuldu.",
-      color: "green",
-    });
-    router.push("/tickets");
-  } catch (err) {
-    toast.add({
-      title: "Hata!",
-      description: err.data?.message || "Talep oluşturulamadı.",
-      color: "red",
-    });
-  } finally {
-    isLoading.value = false;
+  
+  // Durum filtresi (artık tek bir değere göre kontrol ediyor)
+  if (selectedStatus.value) {
+    requests = requests.filter(request => request.status === selectedStatus.value);
   }
-}
+  
+  return requests;
+});
 </script>
-
-<style scoped>
-.file-input {
-  @apply block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer;
-}
-</style>

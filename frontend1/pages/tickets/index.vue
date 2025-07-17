@@ -18,50 +18,78 @@
       </UButton>
     </div>
 
-    <!-- Filtreler -->
-    <UCard class="mb-6 shadow-none border border-gray-100 bg-white">
-      <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-        <div class="flex-1 flex items-center">
-          <UInput
-            v-model="searchQuery"
-            icon="i-heroicons-magnifying-glass"
-            placeholder="Başlıkta veya ID'de ara..."
-            class="w-full form-input"
-          />
-        </div>
-        <div class="flex-1 flex items-center">
-          <USelectMenu
-            v-model="selectedStatuses"
-            :options="statusOptions"
-            multiple
-            placeholder="Duruma Göre Filtrele"
-            class="w-full form-input"
-          />
-        </div>
-        <div class="flex-1 flex items-center">
-          <USelectMenu
-            v-model="selectedPriorities"
-            :options="priorityOptions"
-            multiple
-            placeholder="Önceliğe Göre Filtrele"
-            class="w-full form-input"
-          />
-        </div>
-        <div class="flex items-center">
-          <UButton
-            @click="clearFilters"
-            color="gray"
-            variant="ghost"
-            icon="i-heroicons-x-circle"
-            class="flex items-center whitespace-nowrap rounded-full px-4 py-2"
-          >
-            Filtreleri Temizle
-          </UButton>
-        </div>
-      </div>
-    </UCard>
+<!-- Filtreler (Düzeltilmiş Hali) -->
+<UCard class="mb-6 shadow-none border border-gray-100 bg-white">
+  <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+    <!-- Arama Alanı -->
+    <div class="flex-1 flex items-center">
+      <UInput
+        v-model="searchQuery"
+        icon="i-heroicons-magnifying-glass"
+        size="lg"
+        placeholder="Başlıkta veya ID'de ara..."
+        :ui="{
+          base: 'w-full',
+          rounded: 'rounded-full',
+          color: { white: { outline: 'bg-gray-100 border-0' } },
+          ring: 'focus:ring-2 focus:ring-inset focus:ring-blue-500',
+          padding: { lg: 'py-3' }
+        }"
+      />
+    </div>
+    <!-- Durum Filtresi -->
+    <div class="flex-1 flex items-center">
+      <USelectMenu
+        v-model="selectedStatuses"
+        :options="statusOptions"
+        multiple
+        size="lg"
+        placeholder="Duruma Göre Filtrele"
+        :popper="{ placement: 'bottom-end' }"
+        :ui="{
+          base: 'w-full',
+          rounded: 'rounded-full',
+          color: { white: { outline: 'bg-gray-100 border-0' } },
+          ring: 'focus:ring-2 focus:ring-inset focus:ring-blue-500',
+          padding: { lg: 'py-3' }
+        }"
+      />
+    </div>
+    <!-- Öncelik Filtresi -->
+    <div class="flex-1 flex items-center">
+      <USelectMenu
+        v-model="selectedPriorities"
+        :options="priorityOptions"
+        multiple
+        size="lg"
+        placeholder="Önceliğe Göre Filtrele"
+        :popper="{ placement: 'bottom-end' }"
+        :ui="{
+          base: 'w-full',
+          rounded: 'rounded-full',
+          color: { white: { outline: 'bg-gray-100 border-0' } },
+          ring: 'focus:ring-2 focus:ring-inset focus:ring-blue-500',
+          padding: { lg: 'py-3' }
+        }"
+      />
+    </div>
+    <!-- Filtre Temizleme Butonu -->
+    <div class="flex items-center">
+      <UButton
+        @click="clearFilters"
+        color="gray"
+        variant="ghost"
+        icon="i-heroicons-x-circle"
+        class="flex items-center whitespace-nowrap rounded-full px-4"
+        size="lg"
+      >
+        Filtreleri Temizle
+      </UButton>
+    </div>
+  </div>
+</UCard>
 
-    <!-- TABLO (responsive ve kaydırmasız) -->
+    <!-- TABLO -->
     <div v-if="pending" class="text-center py-10 text-gray-500">Talepler yükleniyor...</div>
     <div v-else-if="error" class="text-center py-10 text-red-500">Talepler yüklenirken bir hata oluştu.</div>
     <div v-else>
@@ -73,11 +101,9 @@
           :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'Gösterilecek talep bulunamadı.' }"
           class="min-w-full"
         >
-          <!-- Talep ID -->
+          <!-- Talep ID (Artık Link değil, sadece metin) -->
           <template #ticketId-data="{ row }">
-            <NuxtLink :to="`/tickets/${row._id}`" class="text-blue-600 hover:underline font-medium">
-              {{ row.ticketId }}
-            </NuxtLink>
+            <span class="font-medium text-gray-800">{{ row.ticketId }}</span>
           </template>
           <!-- Başlık -->
           <template #title-data="{ row }">
@@ -87,7 +113,7 @@
           <template #description-data="{ row }">
             <span class="block max-w-[140px] truncate" :title="row.description">{{ row.description }}</span>
           </template>
-          <!-- Fotoğraf (sm ve üstünde göster) -->
+          <!-- Fotoğraf -->
           <template #attachment-data="{ row }">
             <img
               v-if="row.attachments && row.attachments[0]"
@@ -116,11 +142,11 @@
               {{ row.priority }}
             </UBadge>
           </template>
-          <!-- Açan (md ve üstünde göster) -->
+          <!-- Açan -->
           <template #openedBy-data="{ row }">
             <span class="hidden md:inline">{{ row.openedBy?.fullName }}</span>
           </template>
-          <!-- Atanan (md ve üstünde göster) -->
+          <!-- Atanan -->
           <template #assignedTo-data="{ row }">
             <span v-if="row.assignedTo" class="hidden md:inline">{{ row.assignedTo.fullName }}</span>
             <span v-else class="text-gray-400 hidden md:inline">Atanmadı</span>
@@ -179,12 +205,12 @@ const columns = [
   { key: 'ticketId', label: 'Talep ID' },
   { key: 'title', label: 'Başlık' },
   { key: 'description', label: 'Açıklama' },
-  { key: 'attachment', label: 'Foto' }, // kısaltıldı
+  { key: 'attachment', label: 'Foto' },
   { key: 'status', label: 'Durum' },
   { key: 'priority', label: 'Öncelik' },
-  { key: 'openedBy', label: 'Açan' },   // kısaltıldı
-  { key: 'assignedTo', label: 'Atanan' }, // kısaltıldı
-  { key: 'createdAt', label: 'Tarih' }    // kısaltıldı
+  { key: 'openedBy', label: 'Açan' },
+  { key: 'assignedTo', label: 'Atanan' },
+  { key: 'createdAt', label: 'Tarih' }
 ]
 
 const { data: ticketsData, pending, error } = await useFetch('/api/tickets', {
