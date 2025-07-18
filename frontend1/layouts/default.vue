@@ -10,19 +10,10 @@
         </div>
         <div class="flex-1 flex flex-col overflow-y-auto">
           <nav class="flex-1 px-2">
-            <!-- DÜZELTME: Sadece '#label' slotu kullanılarak hem çift ikon hem de 'Current page' sorunu çözüldü. -->
-            <UVerticalNavigation :links="navigation" :ui="uiConfig">
-              <template #label="{ link }">
-                <span class="truncate">{{ link.label }}</span>
-              </template>
-            </UVerticalNavigation>
+            <UVerticalNavigation :links="navigation" :ui="uiConfig" />
           </nav>
           <div class="px-2 py-4">
-            <UVerticalNavigation :links="secondaryNavigation" :ui="uiConfig">
-              <template #label="{ link }">
-                <span class="truncate">{{ link.label }}</span>
-              </template>
-            </UVerticalNavigation>
+            <UVerticalNavigation :links="secondaryNavigation" :ui="uiConfig" />
           </div>
         </div>
       </aside>
@@ -65,6 +56,10 @@ const router = useRouter();
 
 // Navigasyon için özel UI yapılandırması
 const uiConfig = {
+  // YENİ VE KESİN ÇÖZÜM: 'before' ve 'after' kısımlarını boşaltarak erişilebilirlik metnini kaldırıyoruz.
+  before: '',
+  after: '',
+  
   base: "group flex items-center gap-3 w-full rounded-md cursor-pointer",
   padding: "px-3 py-2.5",
   font: "font-medium",
