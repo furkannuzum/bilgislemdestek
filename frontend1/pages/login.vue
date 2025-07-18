@@ -85,12 +85,12 @@
         Şifremi Unuttum
       </NuxtLink>
     </div>
-    <p class="mt-8 text-center text-sm text-gray-500">
+    <!-- <p class="mt-8 text-center text-sm text-gray-500">
       Hesabınız yok mu?
       <NuxtLink to="/register" class="font-semibold text-blue-600 hover:underline">
         Kayıt Olun
       </NuxtLink>
-    </p>
+    </p> -->
 
   </div>
 </template>

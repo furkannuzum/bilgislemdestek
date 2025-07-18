@@ -54,45 +54,62 @@
         </div>
       </div>
       
-      <!-- HIZLI AKSİYONLAR (YENİ TASARIM) -->
-      <div class="lg:col-span-1 flex flex-col">
-      
-        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Hızlı Aksiyonlar</h2>
-        <div class="flex-1 flex flex-col space-y-3">
-          <!-- Bu butonlar artık aynı stilde -->
-          <UButton 
-            to="/tickets/new" 
-            icon="i-heroicons-plus-circle-20-solid" 
-            size="lg" 
-            block 
-            class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
-          >
-            Yeni Destek Talebi
-          </UButton>
-          
-          <UButton 
-            to="/requests/new" 
-            icon="i-heroicons-plus-circle-20-solid" 
-            size="lg" 
-            block 
-            class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
-          >
-            Yeni Cihaz Talebi
-          </UButton>
+     <!-- HIZLI AKSİYONLAR (YENİ TASARIM) -->
+<div class="lg:col-span-1 flex flex-col">
 
-          <UButton 
-            v-if="authStore.userRole !== 'EndUser'"
-            to="/reports" 
-            icon="i-heroicons-chart-pie-20-solid" 
-            size="lg" 
-            block 
-            class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
-          >
-            Raporları Görüntüle
-          </UButton>
-        </div>
-      </div>
-      <!-- HIZLI AKSİYONLAR SONU -->
+  <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Hızlı Aksiyonlar</h2>
+  <div class="flex-1 flex flex-col space-y-3">
+    <!-- Bu butonlar aynı kalacak -->
+    <UButton 
+      to="/tickets/new" 
+      icon="i-heroicons-plus-circle-20-solid" 
+      size="lg" 
+      block 
+      class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
+    >
+      Yeni Destek Talebi
+    </UButton>
+    
+    <UButton 
+      to="/requests/new" 
+      icon="i-heroicons-plus-circle-20-solid" 
+      size="lg" 
+      block 
+      class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
+    >
+      Yeni Cihaz Talebi
+    </UButton>
+
+    <UButton 
+      v-if="authStore.userRole !== 'EndUser'"
+      to="/reports" 
+      icon="i-heroicons-chart-pie-20-solid" 
+      size="lg" 
+      block 
+      class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
+    >
+      Raporları Görüntüle
+    </UButton>
+    
+    <!-- **************************************** -->
+    <!--          YENİ EKLENECEK BUTON            -->
+    <!-- **************************************** -->
+    <UButton 
+      v-if="authStore.userRole === 'Admin' || authStore.userRole === 'ITAgent'"
+      to="/admin/users" 
+      icon="i-heroicons-user-plus-20-solid" 
+      size="lg" 
+      block 
+      class="w-full text-white bg-green-600 hover:bg-green-700 font-bold rounded-full text-base px-5 py-3 text-center transition-colors disabled:opacity-50"
+    >
+      Yeni Kullanıcı Oluştur
+    </UButton>
+    <!-- **************************************** -->
+    <!--                EKLEME SONU               -->
+    <!-- **************************************** -->
+
+  </div>
+</div>  
 
     </div>
   </div>
