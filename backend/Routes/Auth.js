@@ -3,7 +3,6 @@ const router = express.Router();
 
 // 1. Yeni controller fonksiyonlarını import listesine ekliyoruz.
 const {
-  register,
   login,
   updateProfile,
   updatePassword,
@@ -13,7 +12,6 @@ const {
 const { protect } = require("../middleware/auth");
 
 // --- HERKESE AÇIK (PUBLIC) ROTALAR ---
-router.post("/register", register);
 router.post("/login", login);
 
 // --- KORUMALI (PRIVATE) ROTALAR ---

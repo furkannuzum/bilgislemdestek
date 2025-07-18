@@ -2,51 +2,6 @@ const User = require('../Models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// @desc    Yeni kullanıcı kaydı
-// @route   POST /api/auth/register
-// @access  Public
-exports.register = async (req, res) => {
-    try {
-        const { fullName, email, password, role, departmentId } = req.body;
-
-        if (role === 'EndUser' && !departmentId) {
-            return res.status(400).json({ success: false, message: "Normal kullanıcılar için birim (departmentId) seçimi zorunludur." });
-        }
-
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ success: false, message: 'Bu e-posta adresi zaten kullanılıyor.' });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const user = await User.create({
-            fullName,
-            email,
-            password: hashedPassword,
-            role,
-            departmentId
-        });
-        
-        const userResponse = {
-            _id: user._id,
-            fullName: user.fullName,
-            email: user.email,
-            role: user.role,
-            departmentId: user.departmentId
-        };
-
-        res.status(201).json({ success: true, data: userResponse });
-
-    } catch (error) {
-        if (error.name === 'ValidationError') {
-            const messages = Object.values(error.errors).map(val => val.message);
-            return res.status(400).json({ success: false, message: messages.join(', ') });
-        }
-        res.status(500).json({ success: false, message: 'Sunucu tarafında bir hata oluştu: ' + error.message });
-    }
-};
 
 // @desc    Kullanıcı girişi
 // @route   POST /api/auth/login

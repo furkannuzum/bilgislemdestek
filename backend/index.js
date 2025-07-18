@@ -19,6 +19,7 @@ const categoryRoutes = require('./Routes/categories');
 const ticketRoutes = require('./Routes/tickets');
 const deviceRequestRoutes = require('./Routes/deviceRequests');
 const analyticsRoutes = require('./Routes/analytics');
+const usersRoutes = require('./Routes/users');
 
 // 3. Express uygulamasını oluştur
 const app = express();
@@ -30,8 +31,18 @@ connectDB(); // Fonksiyonu aşağıda tanımlayacağız
 // Temel güvenlik için HTTP başlıklarını ayarla
 app.use(helmet());
 
-// CORS'u etkinleştir
-app.use(cors());
+// CORS'u etkinleştir (YENİ VE DETAYLI AYARLAR)
+const corsOptions = {
+  // 1. Sadece senin frontend'inden gelen isteklere izin ver
+  origin: 'http://localhost:3000', // Nuxt projenin çalıştığı adres
+
+  // 2. İzin verilen HTTP metodları
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+
+  // 3. EN ÖNEMLİ KISIM: Frontend'in gönderebileceği özel başlıklara izin ver
+  allowedHeaders: "Content-Type,Authorization" 
+};
+app.use(cors(corsOptions));
 
 // İstek Sınırlayıcı (Rate Limiter)
 const limiter = rateLimit({
@@ -60,7 +71,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/devicerequests', deviceRequestRoutes);
 app.use('/api/analytics', analyticsRoutes);
-
+app.use('/api/users', usersRoutes);
 // Ana Rota (Test için)
 app.get('/', (req, res) => {
     res.send('Belediye BT Destek API Çalışıyor!');

@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   // --- Adım 4: Rota Kurallarını Tanımlama ---
   // Hangi sayfaların giriş yapmadan görülebileceğini tanımlıyoruz.
-  const publicPages = ["/", "/login", "/register", "/forgot-password"];
+  const publicPages = ["/", "/login", "/forgot-password"];
 
   // Gidilmek istenen sayfa, publicPages listesinde DEĞİLSE, yetki gerektirir.
   const authRequired = !publicPages.includes(to.path);
