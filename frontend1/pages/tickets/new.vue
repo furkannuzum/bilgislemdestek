@@ -31,17 +31,16 @@
         <!-- Kategori Seçimi -->
         <UFormGroup label="Kategori" name="category" required>
           <USelect
-            v-model="state.category"
-            :options="ticketCategories"
-            option-attribute="name"
-            by="_id"
-            value-attribute="_id"  
-            placeholder="Sorun kategorisi seçiniz..."
-            searchable
-            size="lg"
-            class="w-full"
-            :clearable="true"
-          />
+  v-model="state.category"
+  :options="ticketCategories"
+  option-attribute="name"
+  value-attribute="_id"   
+  placeholder="Sorun kategorisi seçiniz..."
+  searchable
+  size="lg"
+  class="w-full"
+  :clearable="true"
+/>
         </UFormGroup>
 
         <!-- Öncelik -->
@@ -101,14 +100,18 @@ const priorityOptions = ["Low", "Medium", "High", "Urgent"];
 
 // 1. STATE'İ BURAYA YAZ
 const state = reactive({
-  productCategory: undefined, // string olacak
-  specs: undefined
+  title: undefined,
+  category: undefined, // Burada id olacak!
+  priority: undefined,
+  description: undefined,
+  attachment: null,
 });
 
-// 2. ZOD ŞEMASINDAKİ category'yı string olarak değiştir:
 const schema = z.object({
-  productCategory: z.string({ required_error: "Ürün kategorisi seçimi zorunludur." }),
-  specs: z.string({ required_error: "Açıklama alanı zorunludur." }).min(10, 'Lütfen en az 10 karakterlik bir açıklama girin.'),
+  title: z.string({ required_error: "Başlık zorunludur." }).min(3, "Başlık en az 3 karakter olmalı."),
+  category: z.string({ required_error: "Kategori seçimi zorunludur." }),
+  priority: z.string({ required_error: "Öncelik seçimi zorunludur." }),
+  description: z.string({ required_error: "Açıklama zorunludur." }).min(10, "Lütfen en az 10 karakter girin."),
 });
 
 // Kategoriler çekiliyor
@@ -149,7 +152,7 @@ async function handleCreateTicket(event) {
       headers: { Authorization: `Bearer ${authStore.token}` },
       body: {
         title: event.data.title,
-        category: event.data.category._id,
+        category: event.data.category, // sadece id!
         priority: event.data.priority,
         description: event.data.description,
       },
@@ -179,6 +182,7 @@ async function handleCreateTicket(event) {
     isLoading.value = false;
   }
 }
+
 </script>
 
 <style scoped>
