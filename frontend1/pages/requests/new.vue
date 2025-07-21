@@ -13,20 +13,16 @@
     <UForm :state="state" :schema="schema" @submit="handleCreateRequest" class="space-y-5">
       <!-- Kategori -->
       <UFormGroup label="Ürün Kategorisi" name="productCategory" required>
-        <div class="relative">
-          <USelect
-            v-model="state.productCategory"
-            :options="productCategories"
-            by="_id"
-            option-attribute="name"
-            placeholder="Kategori seçiniz..."
-            searchable
-            size="lg"
-            class="w-full"
-            popper-class="z-[9999]"
-            :ui="{ color: { gray: { 'select-menu': { base: 'text-gray-900 dark:text-white' } } } }"
-          />
-        </div>
+        <USelect
+          v-model="state.productCategory"
+          :options="productCategories"
+          value-attribute="_id"
+          option-attribute="name"
+          placeholder="Kategori seçiniz..."
+          searchable
+          size="lg"
+          class="w-full"
+        />
       </UFormGroup>
 
       <!-- Açıklama -->
@@ -38,7 +34,6 @@
         />
       </UFormGroup>
 
-      <!-- Buton, login ile uyumlu, alttan boşluklu -->
       <div class="flex justify-end pt-4">
         <UButton
           type="submit"
@@ -66,18 +61,21 @@ const authStore = useAuthStore()
 const router = useRouter()
 const toast = useToast()
 
-const schema = z.object({
-  productCategory: z.string({ required_error: "Ürün kategorisi seçimi zorunludur." }),
-  specs: z.string({ required_error: "Açıklama alanı zorunludur." }).min(10, 'Lütfen en az 10 karakterlik bir açıklama girin.'),
-});
-
+// 1. Formun state'i
 const state = reactive({
-  productCategory: undefined,
+  productCategory: undefined, // Buraya sadece ID gelecek!
   specs: undefined
 })
 
+// 2. Form doğrulama şeması
+const schema = z.object({
+  productCategory: z.string({ required_error: "Ürün kategorisi seçimi zorunludur." }),
+  specs: z.string({ required_error: "Açıklama alanı zorunludur." }).min(10, 'Lütfen en az 10 karakterlik bir açıklama girin.'),
+})
+
+// 3. Kategori verisi çekiliyor
 const productCategories = ref([])
-const { data, error } = await useFetch('/api/categories?type=Product', {
+const { data, error } = await useFetch('http://localhost:3001/api/categories?type=Product', {
   headers: { Authorization: `Bearer ${authStore.token}` }
 })
 if (data.value?.success) {
@@ -86,15 +84,16 @@ if (data.value?.success) {
   toast.add({ title: 'Hata', description: 'Ürün kategorileri yüklenemedi.', color: 'red' })
 }
 
+// 4. Form submit fonksiyonu
 const isLoading = ref(false)
 async function handleCreateRequest(event) {
   isLoading.value = true
   try {
-    const response = await $fetch('/api/devicerequests', {
+    const response = await $fetch('http://localhost:3001/api/devicerequests', {
       method: 'POST',
       headers: { Authorization: `Bearer ${authStore.token}` },
       body: {
-        productCategory: event.data.productCategory._id,
+        productCategory: event.data.productCategory, // Sadece ID gönderiliyor!
         specs: event.data.specs,
       }
     })
@@ -111,7 +110,7 @@ async function handleCreateRequest(event) {
 </script>
 
 <style scoped>
-/* Select/menü açılırken z-index problemi olmaması için */
+/* Eğer select açılırken z-index problemi olursa */
 :deep(.z-\[9999\]) {
   z-index: 9999 !important;
 }
