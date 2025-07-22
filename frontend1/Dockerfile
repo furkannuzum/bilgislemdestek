@@ -2,10 +2,7 @@ FROM node:18
 
 WORKDIR /app
 
-# package.json varsa önce onu kopyala
-COPY package.json ./
-COPY package-lock.json ./
-
+COPY package*.json ./   # burası eksiksiz olmalı
 RUN npm install
 
 COPY . .
