@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --hostname 0.0.0.0 --port 3005",
+    "start": "nuxt start --hostname 0.0.0.0 --port 3005",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
+
   },
   "dependencies": {
     "@nuxt/icon": "^1.15.0",
