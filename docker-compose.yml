@@ -11,7 +11,7 @@ services:
       - ./backend:/app
     command: npm run dev
 
-  frontend:
+  frontend1:
     build:
       context: ./frontend1
       dockerfile: Dockerfile
