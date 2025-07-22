@@ -72,6 +72,8 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/devicerequests', deviceRequestRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/users', usersRoutes);
+
+
 // Ana Rota (Test için)
 app.get('/', (req, res) => {
     res.send('Belediye BT Destek API Çalışıyor!');
