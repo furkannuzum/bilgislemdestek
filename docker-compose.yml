@@ -16,7 +16,6 @@ services:
       context: ./frontend1
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "3005:3005"
     volumes:
-      - ./frontend:/app
-  
+      - ./frontend1:/app
