@@ -1,20 +1,22 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  frontend:
-    build:
-      context: ./frontend1
-      dockerfile: Dockerfile
-    ports:
-      - "3005:3005" # Nuxt genelde 3000'de çalışır, dışarıya 3005 veriyoruz
-    restart: always
-    depends_on:
-      - backend
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8085:8085" # Express 8080, dışarı 8085
-    restart: always
+      - "8085:8085"
+    volumes:
+      - ./backend:/app
+    command: npm run dev
+
+  frontend1:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+  
