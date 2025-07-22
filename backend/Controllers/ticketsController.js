@@ -72,48 +72,42 @@ exports.createTicket = async (req, res) => {
     }
 };
 
-// @desc    Ticket'ı güncelle (durum, atama, yorum ekleme vb.)
-// @route   PUT /api/tickets/:id
 exports.updateTicket = async (req, res) => {
     try {
         let ticket = await Ticket.findById(req.params.id);
-
-        if (!ticket) {
-            return res.status(404).json({ success: false, message: 'Ticket bulunamadı.' });
-        }
+        if (!ticket) { /* ... hata ... */ }
 
         const { status, assignedTo, comment } = req.body;
         let action = "Ticket güncellendi.";
         
-        // Sadece durum değişirse...
+        // Durum değişikliği
         if (status && ticket.status !== status) {
             ticket.status = status;
             action = `Durum '${status}' olarak değiştirildi.`;
             ticket.history.push({ user: req.user.id, action });
-            if (status === 'Resolved' && !ticket.resolvedAt) ticket.resolvedAt = Date.now();
-            if (status === 'Closed' && !ticket.closedAt) ticket.closedAt = Date.now();
+            // ... resolvedAt, closedAt tarihleri ...
         }
         
-        // Sadece atama değişirse...
+        // Atama değişikliği
         if (assignedTo && ticket.assignedTo?.toString() !== assignedTo) {
             ticket.assignedTo = assignedTo;
-            // Not: assignedTo bir ID olduğu için, ismini almak için populate gerekir. Şimdilik ID'yi gösterelim.
-            action = `Ticket ${assignedTo} ID'li kullanıcıya atandı.`;
+            action = `Ticket atandı.`; // Daha sonra atanan kişinin adını ekleyebiliriz.
             ticket.history.push({ user: req.user.id, action });
         }
         
-        // Eğer bir yorum ekleniyorsa...
+        // Yorum ekleme
         if (comment) {
             action = `Yeni bir yorum ekledi.`;
-            ticket.history.push({ user: req.user.id, action: action, comment: comment });
+            ticket.history.push({ 
+                user: req.user.id, 
+                action: action, 
+                comment: comment // Yorumu history'e kaydediyoruz
+            });
         }
 
         await ticket.save();
-
         res.status(200).json({ success: true, data: ticket });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
+    } catch (error) { /* ... hata ... */ }
 };
 // YENİ FONKSİYON
 // @desc    Bir ticket'a dosya yükle
