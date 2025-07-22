@@ -11,9 +11,9 @@ services:
       - ./backend:/app
     command: npm run dev
 
-  frontend1:
+  frontend:
     build:
-      context: ./frontend1
+      context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "3005:3005"
