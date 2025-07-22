@@ -17,6 +17,4 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8085:8085" # Express 8080, dışarı 8085
-    restart: always
-   
-   
+    restart: always
