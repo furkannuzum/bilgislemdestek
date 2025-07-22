@@ -2,10 +2,10 @@ FROM node:18
 
 WORKDIR /app
 
-COPY package*.json ./   # burası eksiksiz olmalı
+COPY package.json package-lock.json ./  
 RUN npm install
 
-COPY . .
+COPY . .                  
 
 EXPOSE 3005
 
