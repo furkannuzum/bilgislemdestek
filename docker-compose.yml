@@ -9,7 +9,6 @@ services:
       - "8085:8085"
     volumes:
       - ./backend:/app
-    command: npm run dev
 
   frontend:
     build:
