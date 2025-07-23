@@ -34,8 +34,8 @@ app.use(helmet());
 // CORS'u etkinleştir (YENİ VE DETAYLI AYARLAR)
 const corsOptions = {
   // 1. Sadece senin frontend'inden gelen isteklere izin ver
-  origin: 'http://localhost:3000', // Nuxt projenin çalıştığı adres
-
+  origin: 'http://mezitlibim.mezitli.bel.tr/proje/', // Nuxt projenin çalıştığı adres
+  
   // 2. İzin verilen HTTP metodları
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 
