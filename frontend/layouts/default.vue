@@ -1,10 +1,9 @@
+<!-- layouts/default.vue DOSYASININ YENİ İÇERİĞİ -->
 <template>
   <div class="h-screen flex flex-col">
     <div class="flex flex-1 overflow-hidden">
       <!-- MASAÜSTÜ İÇİN SOL MENÜ -->
-      <aside
-        class="hidden md:flex md:flex-col w-64 flex-shrink-0 bg-gray-800 border-r border-gray-700"
-      >
+      <aside class="hidden md:flex md:flex-col w-64 flex-shrink-0 bg-gray-800 border-r border-gray-700">
         <div class="px-4 py-5">
           <h1 class="text-xl font-bold text-white">Belediye IT Destek</h1>
         </div>
@@ -27,9 +26,7 @@
     </div>
 
     <!-- MOBİL İÇİN ALT NAVİGASYON MENÜSÜ -->
-    <nav
-      class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
-    >
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
       <div class="flex justify-around h-16">
         <NuxtLink
           v-for="link in mobileNavigation"
@@ -44,7 +41,8 @@
       </div>
     </nav>
 
-    <div class="md:hidden h-16"></div>
+    <!-- Bu, mobil menünün içeriği ezmemesi için boşluk bırakır -->
+    <div class="md:hidden h-16"></div> 
   </div>
 </template>
 
@@ -56,10 +54,8 @@ const router = useRouter();
 
 // Navigasyon için özel UI yapılandırması
 const uiConfig = {
-  // YENİ VE KESİN ÇÖZÜM: 'before' ve 'after' kısımlarını boşaltarak erişilebilirlik metnini kaldırıyoruz.
   before: '',
   after: '',
-  
   base: "group flex items-center gap-3 w-full rounded-md cursor-pointer",
   padding: "px-3 py-2.5",
   font: "font-medium",
@@ -76,35 +72,24 @@ const uiConfig = {
 const navigation = [
   { label: "Dashboard", icon: "i-heroicons-home", to: "/dashboard" },
   { label: "Destek Talepleri", icon: "i-heroicons-ticket", to: "/tickets" },
-  {
-    label: "Cihaz Talepleri",
-    icon: "i-heroicons-computer-desktop",
-    to: "/requests",
-  },
+  { label: "Cihaz Talepleri", icon: "i-heroicons-computer-desktop", to: "/requests" },
+  // YÖNETİM PANELİ LİNKİNİ KOŞULLU EKLEME
+  ...(authStore.userRole === 'Admin' || authStore.userRole === 'ITAgent' ? [{ label: 'Kullanıcı Yönetimi', icon: 'i-heroicons-users', to: '/admin/users' }] : [])
 ];
 
 const handleLogout = () => {
   authStore.logout();
-  router.push('/');
 };
 
 const secondaryNavigation = [
   { label: "Ayarlar", icon: "i-heroicons-cog-6-tooth", to: "/settings" },
-  {
-    label: "Çıkış Yap",
-    icon: "i-heroicons-arrow-left-on-rectangle",
-    click: handleLogout
-  },
+  { label: "Çıkış Yap", icon: "i-heroicons-arrow-left-on-rectangle", click: handleLogout },
 ];
 
 const mobileNavigation = [
   { label: "Dashboard", icon: "i-heroicons-home-solid", to: "/dashboard" },
   { label: "Destek", icon: "i-heroicons-ticket-solid", to: "/tickets" },
-  {
-    label: "Cihaz",
-    icon: "i-heroicons-computer-desktop-solid",
-    to: "/requests",
-  },
+  { label: "Cihaz", icon: "i-heroicons-computer-desktop-solid", to: "/requests" },
   { label: "Ayarlar", icon: "i-heroicons-cog-6-tooth-solid", to: "/settings" },
 ];
 </script>

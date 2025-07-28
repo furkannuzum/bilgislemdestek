@@ -35,10 +35,27 @@ exports.login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
-        res.status(200).json({ success: true, token });
+       // --- DEĞİŞİKLİK BURADA ---
+        // Token'ı bir HttpOnly cookie olarak ayarla
+        res.cookie('token', token, {
+            httpOnly: true, // Tarayıcıdaki JavaScript'in bu cookie'ye erişimini engeller (XSS saldırılarına karşı koruma)
+            secure: process.env.NODE_ENV === 'production', // Sadece HTTPS üzerinden gönderilir
+            maxAge: 24 * 60 * 60 * 1000, // 1 gün (milisaniye cinsinden)
+            sameSite: 'strict' // Sadece kendi sitemizden gelen isteklerde gönderilir
+        });
+        
+        // Kullanıcı bilgilerini JSON olarak döndür (token'ı artık göndermiyoruz)
+        const userProfile = {
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role
+        };
+        res.status(200).json({ success: true, user: userProfile });
+        // --- DEĞİŞİKLİK SONU ---
 
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Sunucu tarafında bir hata oluştu: ' + error.message });
+        res.status(500).json({ success: false, message: 'Sunucu Hatası: ' + error.message });
     }
 };
 
@@ -112,4 +129,39 @@ exports.updatePassword = async (req, res) => {
     } catch (error) {
          res.status(500).json({ success: false, message: 'Sunucu Hatası: ' + error.message });
     }
+};
+
+// --- YENİ FONKSİYON ---
+// @desc    Giriş yapmış olan kullanıcının bilgilerini getir
+// @route   GET /api/auth/me
+// @access  Private
+exports.getMe = async (req, res) => {
+    // Bu fonksiyona istek geldiğinde, `protect` middleware'i zaten çalışmış
+    // ve geçerli kullanıcıyı `req.user` objesine eklemiş olacak.
+    // Tek yapmamız gereken bu objeyi geri döndürmek.
+
+    // req.user, protect middleware'i tarafından .select('-password') ile geldiği için zaten güvenli.
+    res.status(200).json({
+        success: true,
+        user: req.user
+    });
+};
+
+
+// --- YENİ FONKSİYON (LOGOUT İÇİN) ---
+// @desc    Kullanıcının çıkış yapmasını ve cookie'yi temizlemesini sağla
+// @route   POST /api/auth/logout
+// @access  Public
+exports.logout = (req, res) => {
+    // Tarayıcıya 'token' cookie'sini boş bir değerle ve süresi geçmiş olarak gönderiyoruz.
+    // Bu, tarayıcının cookie'yi anında silmesini sağlar.
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() + 10 * 1000), // 10 saniye sonra süresi dolsun
+        httpOnly: true
+    });
+
+    res.status(200).json({
+        success: true,
+        data: {}
+    });
 };

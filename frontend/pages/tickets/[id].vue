@@ -115,6 +115,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
+import { useAuthStore } from "~/stores/auth";
 
 const route = useRoute();
 const ticketId = route.params.id;
@@ -128,32 +129,22 @@ const selectedStatus = ref("");
 const selectedAssigneeId = ref("");
 const itAgents = ref([]);
 
-const getToken = () =>
-  process.client ? localStorage.getItem("authToken") : null;
-const getUser = () => {
-  if (!process.client) return {};
-  try {
-    return JSON.parse(localStorage.getItem("user") || "{}");
-  } catch {
-    return {};
-  }
-};
-const user = getUser();
-const userRole = user.role || "";
-const canEdit = computed(() => userRole === "Admin" || userRole === "ITAgent");
+// Kullanıcı yetkilerini store'dan alıyoruz
+const authStore = useAuthStore();
+const userRole = computed(() => authStore.user?.role || "");
+const canEdit = computed(() => userRole.value === "Admin" || userRole.value === "ITAgent");
 
 // === API FONKSİYONLARI ===
 const fetchTicket = async () => {
   pending.value = true;
   try {
-    const res = await fetch(`http://localhost:3001/api/tickets/${ticketId}`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
+    const res = await $fetch(`/api/tickets/${ticketId}`, {
+      credentials: 'include',
     });
-    const result = await res.json();
-    if (result.success) {
-      ticket.value = result.data;
-      selectedStatus.value = result.data.status;
-      selectedAssigneeId.value = result.data.assignedTo?._id || "";
+    if (res.success) {
+      ticket.value = res.data;
+      selectedStatus.value = res.data.status;
+      selectedAssigneeId.value = res.data.assignedTo?._id || "";
     } else {
       error.value = true;
     }
@@ -166,14 +157,10 @@ const fetchTicket = async () => {
 
 const fetchITAgents = async () => {
   try {
-    const res = await fetch(
-      `http://localhost:3001/api/users?role=Admin,ITAgent`,
-      {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      }
-    );
-    const data = await res.json();
-    if (data.success) itAgents.value = data.data;
+    const res = await $fetch(`/api/users?role=Admin,ITAgent`, {
+      credentials: 'include',
+    });
+    if (res.success) itAgents.value = res.data;
   } catch (err) {
     console.error("IT agent listesi alınamadı:", err);
   }
@@ -182,13 +169,10 @@ const fetchITAgents = async () => {
 const updateStatus = async () => {
   isSubmitting.value = true;
   try {
-    await fetch(`http://localhost:3001/api/tickets/${ticketId}`, {
+    await $fetch(`/api/tickets/${ticketId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify({ status: selectedStatus.value }),
+      body: { status: selectedStatus.value },
+      credentials: 'include',
     });
     await fetchTicket();
   } finally {
@@ -200,13 +184,10 @@ const assignAgent = async () => {
   if (!selectedAssigneeId.value) return;
   isSubmitting.value = true;
   try {
-    await fetch(`http://localhost:3001/api/tickets/${ticketId}`, {
+    await $fetch(`/api/tickets/${ticketId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify({ assignedTo: selectedAssigneeId.value }),
+      body: { assignedTo: selectedAssigneeId.value },
+      credentials: 'include',
     });
     await fetchTicket();
   } finally {
@@ -218,13 +199,10 @@ const addComment = async () => {
   if (!newComment.value.trim()) return;
   isSubmitting.value = true;
   try {
-    await fetch(`http://localhost:3001/api/tickets/${ticketId}`, {
+    await $fetch(`/api/tickets/${ticketId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify({ comment: newComment.value }),
+      body: { comment: newComment.value },
+      credentials: 'include',
     });
     newComment.value = "";
     await fetchTicket();
@@ -232,16 +210,15 @@ const addComment = async () => {
     isSubmitting.value = false;
   }
 };
+
 const submitAll = async () => {
   isSubmitting.value = true;
   const updates = {};
 
-  // Değişen durumu ekle
   if (selectedStatus.value && selectedStatus.value !== ticket.value.status) {
     updates.status = selectedStatus.value;
   }
 
-  // Atama ekle
   if (
     selectedAssigneeId.value &&
     selectedAssigneeId.value !== (ticket.value.assignedTo?._id || "")
@@ -249,7 +226,6 @@ const submitAll = async () => {
     updates.assignedTo = selectedAssigneeId.value;
   }
 
-  // Yorum ekle (isteğe bağlı)
   if (newComment.value.trim()) {
     updates.comment = newComment.value.trim();
   }
@@ -260,16 +236,12 @@ const submitAll = async () => {
       return;
     }
 
-    await fetch(`http://localhost:3001/api/tickets/${ticketId}`, {
+    await $fetch(`/api/tickets/${ticketId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify(updates),
+      body: updates,
+      credentials: 'include',
     });
 
-    // Temizlik
     newComment.value = "";
     await fetchTicket();
   } catch (err) {
@@ -283,7 +255,9 @@ const formatDateTime = (d) =>
   d ? new Date(d).toLocaleString("tr-TR") : "Bilinmiyor";
 
 onMounted(async () => {
+  await authStore.fetchUser(); // Kullanıcı bilgisi yoksa al
   await fetchTicket();
   if (canEdit.value) await fetchITAgents();
 });
 </script>
+

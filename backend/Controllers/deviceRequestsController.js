@@ -82,3 +82,29 @@ exports.updateDeviceRequest = async (req, res) => {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Tek bir cihaz talebini getir
+// @route   GET /api/devicerequests/:id
+// @access  Private
+exports.getDeviceRequestById = async (req, res) => {
+    try {
+        const request = await DeviceRequest.findById(req.params.id)
+            .populate('requestedBy', 'fullName email')
+            .populate('department', 'name')
+            .populate('productCategory', 'name')
+            .populate('history.user', 'fullName');
+
+        if (!request) {
+            return res.status(404).json({ success: false, message: 'Talep bulunamadı.' });
+        }
+
+        // EndUser sadece kendi talebini görebilir
+        if (req.user.role === 'EndUser' && request.requestedBy._id.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Bu talebi görme yetkiniz yok.' });
+        }
+
+        res.status(200).json({ success: true, data: request });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Sunucu hatası: ' + err.message });
+    }
+};

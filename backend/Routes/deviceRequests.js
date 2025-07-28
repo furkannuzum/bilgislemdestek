@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
     getDeviceRequests,
+    getDeviceRequestById,
     createDeviceRequest,
     updateDeviceRequest
 } = require('../Controllers/deviceRequestsController');
@@ -16,6 +17,8 @@ router.route('/')
     .post(createDeviceRequest);
 
 router.route('/:id')
+    .get(getDeviceRequestById)
+    // Cihaz talebini güncelle (onay/red süreci)
     // Cihaz taleplerini sadece Admin'ler güncelleyebilir (onay/red için)
     .put(authorize('Admin'), updateDeviceRequest);
 

@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     '/api/tickets/**': { proxy: 'http://localhost:3001/api/tickets/**' },
     '/api/devicerequests/**': { proxy: 'http://localhost:3001/api/devicerequests/**' },
     '/api/analytics/**': { proxy: 'http://localhost:3001/api/analytics/**' },
+    '/api/users/**': { proxy: 'http://localhost:3001/api/users/**' },
   },
   // --- GÜNCELLEME SONU ---
 

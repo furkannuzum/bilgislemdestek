@@ -53,17 +53,18 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { z } from 'zod'
-import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({ layout: 'default', middleware: 'auth' })
 
-const authStore = useAuthStore()
 const router = useRouter()
 const toast = useToast()
 
+// Token'ı cookie'den al
+const token = useCookie('token').value
+
 // 1. Formun state'i
 const state = reactive({
-  productCategory: undefined, // Buraya sadece ID gelecek!
+  productCategory: undefined,
   specs: undefined
 })
 
@@ -73,11 +74,12 @@ const schema = z.object({
   specs: z.string({ required_error: "Açıklama alanı zorunludur." }).min(10, 'Lütfen en az 10 karakterlik bir açıklama girin.'),
 })
 
-// 3. Kategori verisi çekiliyor
+// 3. Kategori verisi çekiliyor - API endpoint düzeltildi
 const productCategories = ref([])
-const { data, error } = await useFetch('http://localhost:3001/api/categories?type=Product', {
-  headers: { Authorization: `Bearer ${authStore.token}` }
+const { data, error } = await useFetch('/api/categories?type=Product', {
+  headers: { Authorization: `Bearer ${token}` }
 })
+
 if (data.value?.success) {
   productCategories.value = data.value.data
 } else {
@@ -89,11 +91,11 @@ const isLoading = ref(false)
 async function handleCreateRequest(event) {
   isLoading.value = true
   try {
-    const response = await $fetch('http://localhost:3001/api/devicerequests', {
+    const response = await $fetch('/api/devicerequests', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${authStore.token}` },
+      headers: { Authorization: `Bearer ${token}` },
       body: {
-        productCategory: event.data.productCategory, // Sadece ID gönderiliyor!
+        productCategory: event.data.productCategory,
         specs: event.data.specs,
       }
     })

@@ -8,7 +8,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const rateLimit = require('express-rate-limit');
-
+const cookieParser = require('cookie-parser');
 // 1. Ortam değişkenlerini en başta yükle
 dotenv.config();
 
@@ -20,6 +20,7 @@ const ticketRoutes = require('./Routes/tickets');
 const deviceRequestRoutes = require('./Routes/deviceRequests');
 const analyticsRoutes = require('./Routes/analytics');
 const usersRoutes = require('./Routes/users');
+
 
 // 3. Express uygulamasını oluştur
 const app = express();
@@ -34,13 +35,15 @@ app.use(helmet());
 // CORS'u etkinleştir (YENİ VE DETAYLI AYARLAR)
 const corsOptions = {
   // 1. Sadece senin frontend'inden gelen isteklere izin ver
-  origin: 'http://mezitlibim.mezitli.bel.tr/proje/', // Nuxt projenin çalıştığı adres
+  origin: 'http://localhost:3005', // Nuxt projenin çalıştığı adres
+   credentials: true,              // ✅ Cookie desteği için zorunlu
   
   // 2. İzin verilen HTTP metodları
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 
   // 3. EN ÖNEMLİ KISIM: Frontend'in gönderebileceği özel başlıklara izin ver
-  allowedHeaders: "Content-Type,Authorization" 
+  allowedHeaders: "Content-Type,Authorization" ,
+  
 };
 app.use(cors(corsOptions));
 
@@ -54,7 +57,7 @@ app.use('/api', limiter);
 
 // Gelen JSON verilerini okuyabilmek için
 app.use(express.json());
-
+app.use(cookieParser()); 
 // Statik klasörü public yap (resimler, css vb. için)
 app.use(express.static(path.join(__dirname, 'public')));
 

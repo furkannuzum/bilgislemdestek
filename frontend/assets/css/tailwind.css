@@ -1,16 +1,10 @@
 /* frontend/assets/css/tailwind.css */
+
+@import "./main.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* 
-  Kendi özel bileşen sınıflarımızı burada bir katman olarak ekliyoruz.
-  Bu, Tailwind'e "main.css içindeki sınıfları al ve 'components' katmanına ekle" der.
-  Bu sayede @apply direktifi sorunsuz çalışır.
-*/
-@layer components {
-  @import "./main.css";
-}
 
 select, option {
   color: #111;

@@ -96,28 +96,41 @@
 </template>
 
 <script setup>
+// --- GEREKLİ İMPORT'LARI EKLEYELİM ---
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
 
-definePageMeta({ layout: 'auth' })
+// --- SAYFA VE LAYOUT AYARLARI ---
+definePageMeta({ layout: 'auth' }) // 'auth' adında bir layout kullanıyorsan bu doğru
 
+// --- STATE TANIMLAMALARI ---
 const email = ref('')
 const password = ref('')
-const showPassword = ref(false) // Şifreyi göster/gizle durumu için
+const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref(null)
+
+// --- GEREKLİ ARAÇLARI ÇAĞIRMA ---
 const authStore = useAuthStore()
 const router = useRouter()
 
+// --- GİRİŞ İŞLEMİ FONKSİYONU ---
 async function handleLogin() {
   isLoading.value = true
   errorMessage.value = null
+
   try {
+    // authStore'daki login fonksiyonunu çağırıyoruz.
+    // Bu fonksiyon, backend'e istek atıp cookie'yi ayarlayacak.
     const success = await authStore.login(email.value, password.value)
+    
     if (success) {
-      router.push('/dashboard')
+      // Giriş başarılıysa ana sayfaya (dashboard'a) yönlendir.
+      router.push('/') 
     }
   } catch (error) {
+    // authStore'dan fırlatılan hatayı yakalayıp kullanıcıya gösteriyoruz.
     errorMessage.value = error.data?.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.'
   } finally {
     isLoading.value = false
@@ -126,11 +139,8 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-/* 
-  Kendi özel form input stilimizi oluşturuyoruz.
-  Bu stil, referans tasarımdaki gibi oval ve ikonlu olacak.
-*/
+/* Form input'ları için genel bir stil oluşturalım */
 .form-input {
-  @apply block w-full rounded-full border-0 py-3 pl-11 pr-4 text-gray-900 bg-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6;
+  @apply block w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
 }
 </style>

@@ -1,101 +1,86 @@
 import { defineStore } from 'pinia'
-import { jwtDecode } from 'jwt-decode'
+import { ref, computed } from 'vue'
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    token: process.client ? localStorage.getItem('authToken') : null,
-    user: process.client && localStorage.getItem('user')
-      ? JSON.parse(localStorage.getItem('user'))
-      : null,
-  }),
+export const useAuthStore = defineStore('auth', () => {
+  // --- STATE ---
+  const user = ref(null) // Token artık cookie'de, sadece user tutulur
 
-  getters: {
-    isAuthenticated: (state) => !!state.token,
-    userRole: (state) => state.user?.role || null,
-    userId: (state) => state.user?.id || null,
-    userFullName: (state) => state.user?.fullName || null,
-  },
+  // --- GETTERS ---
+  const isAuthenticated = computed(() => !!user.value)
+  const userRole = computed(() => user.value?.role || null)
+  const userFullName = computed(() => user.value?.fullName || null)
+  const userId = computed(() => user.value?._id || null)
 
-  actions: {
-    async login(email, password) {
-      try {
-        const response = await $fetch('/api/auth/login', {
-          method: 'POST',
-          body: { email, password },
-        })
+  // --- ACTIONS ---
 
-        if (response.success && response.token) {
-          this.setToken(response.token)
-          return true
-        }
+  // Giriş işlemi
+  async function login(email, password) {
+    try {
+      const response = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: { email, password },
+        credentials: 'include', // Cookie otomatik gönderilsin
+      })
 
-        return false
-      } catch (error) {
-        console.error('Login failed:', error)
-        throw error
-      }
-    },
-
-    logout() {
-      this.token = null
-      this.user = null
-
-      if (process.client) {
-        localStorage.removeItem('authToken')
-        localStorage.removeItem('user')
+      if (response.success && response.user) {
+        user.value = response.user
+        return true
       }
 
-      return navigateTo('/login', { external: true })
-    },
-
-    setToken(newToken) {
-      this.token = newToken
-
-      if (newToken) {
-        try {
-          const decodedUser = jwtDecode(newToken)
-          this.user = decodedUser
-
-          if (process.client) {
-            localStorage.setItem('authToken', newToken)
-            localStorage.setItem('user', JSON.stringify(decodedUser))
-          }
-        } catch (error) {
-          console.error("Invalid token:", error)
-          this.logout()
-        }
-      } else {
-        this.user = null
-        if (process.client) {
-          localStorage.removeItem('authToken')
-          localStorage.removeItem('user')
-        }
-      }
-    },
-
-    initializeAuth() {
-      if (process.client) {
-        const token = localStorage.getItem('authToken')
-        const user = localStorage.getItem('user')
-
-        if (token) {
-          this.token = token
-        }
-
-        if (user) {
-          this.user = JSON.parse(user)
-        } else if (token) {
-          // Eğer user localStorage'da yoksa token'ı decode et
-          try {
-            const decodedUser = jwtDecode(token)
-            this.user = decodedUser
-            localStorage.setItem('user', JSON.stringify(decodedUser))
-          } catch (error) {
-            console.error('Token decode error:', error)
-            this.logout()
-          }
-        }
-      }
+      return false
+    } catch (error) {
+      console.error('Login failed:', error)
+      throw error
     }
   }
+
+  // Çıkış işlemi
+  async function logout() {
+    try {
+      await $fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.warn('Logout isteği başarısız oldu.')
+    } finally {
+      user.value = null
+      navigateTo('/login')
+    }
+  }
+
+  // Uygulama açıldığında veya sayfa yenilendiğinde kullanıcıyı cookie'den doğrula
+  async function fetchUser() {
+    if (user.value) return // Zaten varsa tekrar çekme
+
+    try {
+      const response = await $fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include', // Cookie gönderilsin
+      })
+
+      if (response.success && response.user) {
+        user.value = response.user
+      } else {
+        user.value = null
+      }
+    } catch (error) {
+      console.error('fetchUser error:', error)
+      user.value = null
+    }
+  }
+
+  // Store'dan dışa aktarılacaklar
+  return {
+    user,
+    isAuthenticated,
+    userRole,
+    userFullName,
+    userId,
+    login,
+    logout,
+    fetchUser,
+  }
 })
+// --- ÖNEMLİ NOT ---
+// Bu store, Nuxt'un otomatik olarak yüklediği bir Pinia store'dur  

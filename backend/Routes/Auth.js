@@ -6,6 +6,8 @@ const {
   login,
   updateProfile,
   updatePassword,
+  getMe,
+  logout
 } = require("../Controllers/AuthController");
 
 // 2. Rotaları korumak için 'protect' middleware'ini de import ediyoruz.
@@ -24,4 +26,10 @@ router.put("/updateprofile", protect, updateProfile);
 // Şifre güncelleme rotası
 router.put("/updatepassword", protect, updatePassword);
 
+// '/me' rotası, önce `protect` middleware'inden geçmeli.
+// Bu, sadece geçerli bir cookie'si (token'ı) olanların bu rotaya erişebilmesini sağlar.
+router.get('/me', protect, getMe);
+
+// Logout rotası
+router.post('/logout', logout);
 module.exports = router;

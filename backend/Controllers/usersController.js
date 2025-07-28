@@ -6,17 +6,25 @@ const bcrypt = require('bcryptjs');
 // @access  Private (Admin, ITAgent)
 exports.getUsers = async (req, res) => {
     try {
-        // Şifre alanını göndermeden ve departman adını da dahil ederek kullanıcıları listele
-        const users = await User.find()
-            .select('-password') // Şifre alanını yanıttan çıkar
-            .populate('departmentId', 'name') // departmentId'yi kullanarak 'departments' koleksiyonundan 'name' alanını getir
-            .sort({ createdAt: -1 }); // En yeni kullanıcılar en üstte görünsün
-            
+        // URL'den role query'sini al: ?role=Admin,ITAgent
+        const roles = req.query.role?.split(',') || [];
+
+        let query = {};
+        if (roles.length > 0) {
+            query.role = { $in: roles };
+        }
+
+        const users = await User.find(query)
+            .select('-password')
+            .populate('departmentId', 'name')
+            .sort({ createdAt: -1 });
+
         res.status(200).json({ success: true, count: users.length, data: users });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Sunucu Hatası: ' + error.message });
     }
 };
+
 
 // @desc    Yeni bir kullanıcı oluştur (Admin/ITAgent tarafından)
 // @route   POST /api/users
