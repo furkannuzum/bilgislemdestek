@@ -100,72 +100,107 @@
         </form>
       </div>
       <!-- Sağ: Kullanıcı Listesi -->
-      <div class="lg:col-span-2">
-        <UCard>
-          <template #header>
-            <div class="flex justify-between items-center">
-              <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Mevcut Kullanıcılar</h2>
-              <UInput v-model="searchQuery" icon="i-heroicons-magnifying-glass-20-solid" placeholder="Kullanıcı ara..." />
-            </div>
-          </template>
-          <UTable :columns="columns" :rows="filteredUsers" :loading="isLoadingUsers">
-            <template #role-data="{ row }">
-              <UBadge :color="roleColor(row.role)" variant="soft">{{ row.role }}</UBadge>
-            </template>
-            <template #department-data="{ row }">
-              <span>{{ row.departmentId?.name || 'Atanmamış' }}</span>
-            </template>
-            <template #actions-data="{ row }">
-              <UDropdown :items="userActions(row)">
-                <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid" />
-              </UDropdown>
-            </template>
-          </UTable>
-        </UCard>
+      <!-- Sağ: Kullanıcı Listesi -->
+<div class="lg:col-span-2">
+  <UCard>
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Mevcut Kullanıcılar</h2>
+        <UInput
+          v-model="searchQuery"
+          icon="i-heroicons-magnifying-glass-20-solid"
+          placeholder="Kullanıcı ara..."
+        />
       </div>
-    </div>
-    <!-- Düzenleme Modalı: Kapatılması engellenmiş -->
-    <UModal v-model="isEditModalOpen" :prevent-close="true" hide-close>
-      <template #default>
-        <div class="p-6 space-y-4">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Kullanıcıyı Düzenle</h3>
-          <UFormGroup label="Ad Soyad">
-            <UInput v-model="selectedUser.fullName" />
-          </UFormGroup>
-          <UFormGroup label="E-posta">
-            <UInput v-model="selectedUser.email" />
-          </UFormGroup>
-          <UFormGroup label="Birim">
-            <USelect
-              v-model="selectedUser.departmentId"
-              :options="departments"
-              option-attribute="name"
-              value-attribute="_id"
-              placeholder="Departman Seçin"
-            />
-          </UFormGroup>
-          <UFormGroup label="Rol">
-            <USelect
-              v-model="selectedUser.role"
-              :options="userRoles"
-              placeholder="Rol Seçin"
-            />
-          </UFormGroup>
-          <div class="pt-4">
+    </template>
+
+    <div class="overflow-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Ad Soyad</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">E-posta</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Birim</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Rol</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Aksiyon</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr v-for="user in filteredUsers" :key="user._id">
+            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ user.fullName }}</td>
+            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ user.email }}</td>
+            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">
+              {{ user.departmentId?.name || 'Atanmamış' }}
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">
+                <span
+                  :class="{
+                    'text-red-600 font-semibold': user.role === 'Admin',
+                    'text-blue-600 font-semibold': user.role === 'ITAgent',
+                    'text-gray-700 dark:text-gray-300': user.role === 'EndUser'
+                  }"
+                >
+                  {{ user.role }}
+                </span>
+              </td>
+            <td class="px-4 py-2 flex gap-2">
             <UButton
-              :loading="isSubmitting"
-              color="blue"
-              block
-              @click="updateUser"
+              icon="i-heroicons-pencil-square-20-solid"
+              size="xs"
+              class="bg-blue-600 hover:bg-blue-700 text-white"
+              @click="router.push(`/admin/users/${user._id}`)"
             >
-              Güncelle
+              Düzenle
             </UButton>
-          </div>
-        </div>
-      </template>
-    </UModal>
+            <UButton
+              icon="i-heroicons-trash-20-solid"
+              size="xs"
+              class="bg-red-600 hover:bg-red-700 text-white"
+              @click="deleteUser(user._id, user.fullName)"
+            >
+              Sil
+            </UButton>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </UCard>
+</div>
+
+    </div>
+    
   </div>
 </template>
+
+<style scoped>
+.u-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2563eb; /* blue-600 */
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+}
+
+.u-button:hover {
+  background-color: #1d4ed8; /* blue-700 */
+}
+
+.u-button.red {
+  background-color: #dc2626;
+}
+
+.u-button.red:hover {
+  background-color: #b91c1c;
+}
+</style>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
@@ -230,22 +265,20 @@ const roleColor = (role: string) => {
   return 'primary';
 };
 
+// !!!!!!!!!!!!!!! 1. DEĞİŞİKLİK BURADA !!!!!!!!!!!!!!!
+// userActions fonksiyonunu, düzenleme sayfasını yönlendirecek şekilde güncelliyoruz.
 const userActions = (row: any) => [[
   {
     label: 'Düzenle',
     icon: 'i-heroicons-pencil-square-20-solid',
     click: () => {
-      // Departman objesiyle uyumluluk için aşağıdaki şekilde atama yapılıyor
-      selectedUser.value = {
-        ...row,
-        departmentId: row.departmentId?._id || row.departmentId, // objeyse _id, değilse string zaten
-      };
-      isEditModalOpen.value = true;
+      // Kullanıcıyı, ID'sini içeren yeni düzenleme sayfasına yönlendir
+      router.push(`/admin/users/${row._id}`);
     }
   }, {
     label: 'Sil',
     icon: 'i-heroicons-trash-20-solid',
-    click: () => deleteUser(row._id)
+    click: () => deleteUser(row._id, row.fullName) // Silme fonksiyonuna fullName'i de yolluyoruz
   }
 ]];
 
@@ -335,14 +368,18 @@ async function updateUser() {
   }
 }
 
-async function deleteUser(userId: string) {
-  if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) return;
+// !!!!!!!!!!!!!!! 2. DEĞİŞİKLİK BURADA !!!!!!!!!!!!!!!
+// deleteUser fonksiyonunu, onay penceresinde isim gösterecek şekilde güncelliyoruz.
+async function deleteUser(userId: string, userName: string) { // userName parametresini ekledik
+  // Onay penceresinde silinecek kullanıcının adını göster
+  if (!confirm(`'${userName}' adlı kullanıcıyı silmek istediğinizden emin misiniz?`)) return;
+  
   try {
     await $api(`/users/${userId}`, {
       method: 'DELETE',
     });
     toast.add({ title: 'Başarılı!', description: 'Kullanıcı silindi.', color: 'green' });
-    await fetchUsers();
+    await fetchUsers(); // Listeyi yenile
   } catch (err: any) {
     toast.add({ title: "Hata!", description: err.data?.message || "Kullanıcı silinemedi.", color: "red" });
   }

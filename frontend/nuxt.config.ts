@@ -3,15 +3,12 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/icon',
-    '@nuxtjs/tailwindcss',
+    // '@nuxtjs/tailwindcss',
     '@nuxt/ui',
     '@pinia/nuxt'
   ],
 
-  tailwindcss: {
-    exposeConfig: true
-  },
-  
+
 
   // --- PROXY KURALI GÜNCELLEMESİ ---
   // Tek bir genel kural yerine, backend'e giden her bir yol için

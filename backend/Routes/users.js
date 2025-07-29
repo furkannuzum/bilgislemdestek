@@ -6,7 +6,8 @@ const {
     createUser,
     getUsers,
     updateUser,
-    deleteUser
+    deleteUser,
+    getUserById
 } = require('../Controllers/usersController');
 
 // 2. Yetkilendirme middleware'lerini import et
@@ -27,11 +28,14 @@ router.use(authorize('Admin', 'ITAgent'));
 router.route('/')
     .get(getUsers)
     .post(createUser);
+    
 
 
 // 5. İleride ID'ye göre işlem yapacak rotaları da buraya ekleyeceğiz
 router.route('/:id')
+    .get(getUserById) 
     .put(updateUser)
     .delete(deleteUser);
+    
     
 module.exports = router;

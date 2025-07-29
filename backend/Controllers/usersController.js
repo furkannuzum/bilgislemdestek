@@ -113,3 +113,17 @@ exports.deleteUser = async (req, res) => {
     }
 };
 // TODO: İleride updateUser ve deleteUser fonksiyonlarını da buraya ekleyebiliriz.
+// @desc    Tek bir kullanıcıyı getir
+// @route   GET /api/users/:id
+// @access  Private (Admin, ITAgent)
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password').populate('departmentId', 'name');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Kullanıcı bulunamadı.' });
+        }
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Sunucu Hatası' });
+    }
+};

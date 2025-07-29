@@ -10,7 +10,7 @@
 
 <script setup>
 import { useAuthStore } from '~/stores/auth';
-
+import { RouterLink } from 'vue-router'
 const authStore = useAuthStore();
 const token = useCookie('token'); // 'token' sizin cookie adınız olmalı
 

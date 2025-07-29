@@ -8,6 +8,7 @@ export default {
     "./plugins/**/*.{js,ts}",
     "./app.vue",
     "./error.vue",
+    './node_modules/@nuxt/ui/dist/runtime/**/*.vue'
   ],
   theme: {
     extend: {},

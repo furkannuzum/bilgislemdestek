@@ -51,24 +51,29 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Uygulama açıldığında veya sayfa yenilendiğinde kullanıcıyı cookie'den doğrula
   async function fetchUser() {
-    if (user.value) return // Zaten varsa tekrar çekme
+  // Sadece client'ta user.value varsa tekrar istek atmaya gerek yok
+  if (process.client && user.value) return;
 
-    try {
-      const response = await $fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include', // Cookie gönderilsin
-      })
+  try {
+    const headers = process.server ? useRequestHeaders(['cookie']) : {};
 
-      if (response.success && response.user) {
-        user.value = response.user
-      } else {
-        user.value = null
-      }
-    } catch (error) {
-      console.error('fetchUser error:', error)
-      user.value = null
+    const response = await $fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      headers,
+    });
+
+    if (response.success && response.user) {
+      user.value = response.user;
+    } else {
+      user.value = null;
     }
+  } catch (error) {
+    if (process.dev) console.warn('fetchUser error:', error);
+    user.value = null;
   }
+}
+
 
   // Store'dan dışa aktarılacaklar
   return {
