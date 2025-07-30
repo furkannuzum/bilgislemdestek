@@ -1,201 +1,198 @@
+<!-- [id].vue SAYFASININ NİHAİ İÇERİĞİ -->
 <template>
-  <div class="max-w-5xl mx-auto p-6">
-    <div v-if="pending">Yükleniyor...</div>
-    <div v-else-if="error" class="text-red-500">Talep yüklenemedi veya bulunamadı.</div>
+  <div class="space-y-6">
+    <!-- Yükleme ve Hata Durumları -->
+    <div v-if="pending" class="flex justify-center items-center h-64">
+      <p class="text-gray-500 dark:text-gray-400">Talep bilgileri yükleniyor...</p>
+    </div>
+    <div v-else-if="error || !request" class="flex justify-center items-center h-64">
+      <p class="text-red-500">Talep bulunamadı veya bir hata oluştu.</p>
+    </div>
 
-    <!-- v-else-if="request" ekleyerek request'in null olmadığı durumu garantiliyoruz -->
-    <div v-else-if="request">
-      <!-- Başlık olarak productCategory'nin adını kullanalım -->
-      <h1 class="text-2xl font-bold mb-4">{{ request.productCategory?.name || 'Cihaz Talebi' }}</h1>
+    <!-- Ana İçerik -->
+    <div v-else class="space-y-6">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        {{ request.productCategory?.name || 'Cihaz Talebi' }}
+      </h1>
 
-      <!-- BİLGİ KARTI - DOĞRU ALANLARLA GÜNCELLENDİ -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-white rounded border p-4 shadow mb-6">
-        <!-- 'requestId' yerine '_id' kullanıyoruz -->
-        <div><strong>Talep ID:</strong> {{ request._id }}</div>
-        <div><strong>Durum:</strong> {{ request.status }}</div>
-        
-        <!-- 'priority' alanı API'de yok, bu yüzden 'Belirtilmemiş' gösteriyoruz -->
-        <div><strong>Öncelik:</strong> {{ request.priority || 'Belirtilmemiş' }}</div>
+      <!-- AÇIKLAMA (SPECS) KARTI - YENİ EKLENDİ -->
+      <UCard>
+        <template #header>
+          <h2 class="font-semibold text-gray-700 dark:text-gray-200">Kullanıcı Açıklaması</h2>
+        </template>
+        <!-- `whitespace-pre-wrap` class'ı satır atlamalarını korur -->
+        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{{ request.specs }}</p>
+      </UCard>
 
-        <!-- 'department' alanı doğru, olduğu gibi bırakabiliriz -->
-        <div><strong>Birim:</strong> {{ request.department?.name || 'Yok' }}</div>
-
-        <!-- 'openedBy' yerine 'requestedBy' kullanıyoruz -->
-        <div><strong>Açan:</strong> {{ request.requestedBy?.fullName || 'Yok' }}</div>
-        
-        <div><strong>Oluşturma:</strong> {{ formatDateTime(request.createdAt) }}</div>
-
-        <!-- 'assignedTo' alanı API'de yok, bu yüzden bu satırı güncelliyoruz veya kaldırıyoruz -->
-        <div><strong>Atanan:</strong> {{ request.assignedTo?.fullName || 'Atanmamış' }}</div>
-      </div>
+      <!-- BİLGİ KARTI -->
+      <UCard>
+        <template #header>
+          <h2 class="font-semibold text-gray-700 dark:text-gray-200">Talep Detayları</h2>
+        </template>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+          <div><span class="font-medium text-gray-500">Talep ID:</span> {{ request.requestId }}</div>
+          <div><span class="font-medium text-gray-500">Durum:</span> <UBadge :label="statusMap[request.status]?.label || request.status" :color="statusMap[request.status]?.color || 'gray'" variant="soft" /></div>
+          <div><span class="font-medium text-gray-500">Öncelik:</span> {{ request.priority || 'Belirtilmemiş' }}</div>
+          <div><span class="font-medium text-gray-500">Birim:</span> {{ request.department?.name || 'Yok' }}</div>
+          <div><span class="font-medium text-gray-500">Talep Eden:</span> {{ request.requestedBy?.fullName || 'Yok' }}</div>
+          <div><span class="font-medium text-gray-500">Oluşturma:</span> {{ formatDateTime(request.createdAt) }}</div>
+          <div><span class="font-medium text-gray-500">Atanan:</span> {{ request.assignedTo?.fullName || 'Atanmamış' }}</div>
+        </div>
+      </UCard>
 
       <!-- GÜNCELLEME FORMU -->
-      <!-- 'IT Agent Ata' kısmı, modelinizde 'assignedTo' alanı olmadığı için çalışmayacak. -->
-      <!-- Şimdilik bu bölümü yorum satırı yapabilir veya backend'e bu özelliği ekleyebilirsiniz. -->
-      <div v-if="canEdit" class="space-y-6 bg-white p-4 border rounded shadow mb-8">
-        <div>
-          <label class="font-semibold block mb-1">Durumu Güncelle</label>
-          <select v-model="selectedStatus" class="border rounded w-full p-2">
-            <!-- Durum seçenekleri projenizin akışına göre güncellenmeli (örn: Pending, Approved, Rejected) -->
-            <option value="PendingApproval">Onay Bekliyor</option>
-            <option value="Approved">Onaylandı</option>
-            <option value="Rejected">Reddedildi</option>
-            <option value="Ordered">Sipariş Edildi</option>
-            <option value="Delivered">Teslim Edildi</option>
-          </select>
-        </div>
+      <UCard v-if="canEdit">
+        <template #header>
+          <h2 class="font-semibold text-gray-700 dark:text-gray-200">Talep Yönetimi</h2>
+        </template>
+        <UForm :state="formState" @submit="submitUpdate" class="space-y-4">
+          <UFormGroup label="Durumu Güncelle" name="status">
+            <!-- USelectMenu ile daha şık ve Türkçe etiketli seçim -->
+            <USelectMenu
+              v-model="formState.status"
+              :options="statusOptions"
+              value-attribute="value"
+              option-attribute="label"
+              size="lg"
+            />
+          </UFormGroup>
 
-        <!-- BU BÖLÜM GEÇİCİ OLARAK YORUMA ALINDI, ÇÜNKÜ BACKEND'DE KARŞILIĞI YOK -->
-        <!--
-        <div>
-          <label class="font-semibold block mb-1">IT Agent Ata</label>
-          <select v-model="selectedAssigneeId" class="border rounded w-full p-2">
-            <option v-for="agent in itAgents" :key="agent._id" :value="agent._id">
-              {{ agent.fullName }} ({{ agent.role }})
-            </option>
-          </select>
-        </div>
-        -->
+          <UFormGroup label="Yorum / Red Sebebi" name="rejectionReason">
+            <UTextarea v-model="formState.rejectionReason" placeholder="Gerekliyse bir yorum veya red sebebi ekleyin..." size="lg" />
+          </UFormGroup>
 
-        <div>
-          <label class="font-semibold block mb-1">Yorum Ekle / Red Sebebi</label>
-          <textarea v-model="newComment" class="border rounded w-full p-2" rows="3" placeholder="Yorum veya red sebebi yaz..."></textarea>
-        </div>
-
-        <button @click="submitAll" class="mt-4 bg-indigo-600 text-white px-6 py-2 rounded" :disabled="isSubmitting">
-          Güncellemeleri Kaydet
-        </button>
-      </div>
-
-      <!-- GEÇMİŞ -->
-      <div class="bg-white border rounded shadow p-4">
-        <h2 class="text-lg font-semibold mb-3">Talep Geçmişi</h2>
-        <div v-if="!request.history || request.history.length === 0" class="text-sm text-gray-500">Geçmiş yok.</div>
-        <div v-else v-for="item in request.history" :key="item._id" class="border-b py-3">
-          <div class="text-xs text-gray-500 mb-1">
-            {{ formatDateTime(item.timestamp) }} - {{ item.user?.fullName || 'Sistem' }}
+          <div class="flex justify-end pt-4">
+            <UButton 
+              type="submit" 
+              label="Güncellemeleri Kaydet" 
+              :loading="isSubmitting"
+              size="lg"
+            />
           </div>
-          <div class="text-sm font-medium">{{ item.action }}</div>
-          <!-- API history'de comment alanı göndermiyor, bu satır gizlenebilir -->
-          <!-- <div v-if="item.comment" class="mt-1 text-sm text-gray-700">{{ item.comment }}</div> -->
+        </UForm>
+      </UCard>
+
+      <!-- GEÇMİŞ KARTI -->
+      <UCard>
+        <template #header>
+          <h2 class="font-semibold text-gray-700 dark:text-gray-200">Talep Geçmişi</h2>
+        </template>
+        <div v-if="!request.history || request.history.length === 0" class="text-sm text-center py-4 text-gray-500">
+          Bu talep için bir geçmiş kaydı bulunmuyor.
         </div>
-      </div>
+        <div v-else class="space-y-4">
+          <div v-for="item in request.history" :key="item._id" class="flex items-start gap-4">
+            <UAvatar :alt="item.user?.fullName.charAt(0) || 'S'" size="md" />
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ item.action }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                <span class="font-semibold">{{ item.user?.fullName || 'Sistem' }}</span> tarafından
+                <time :datetime="item.timestamp">{{ formatDateTime(item.timestamp) }}</time>
+              </p>
+            </div>
+          </div>
+        </div>
+      </UCard>
     </div>
   </div>
-</template> 
+</template>
+
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '~/stores/auth'
+import { ref, reactive, onMounted, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useAuthStore } from '~/stores/auth';
+import { useNuxtApp } from '#app';
 
-// $api yerine doğrudan $fetch kullanıyoruz, nuxt.config.ts'de proxy ayarınız olmalı.
-const route = useRoute()
-const requestId = route.params.id
-console.log('Request ID:', requestId)
+definePageMeta({ layout: 'default', middleware: 'auth' });
 
-const authStore = useAuthStore()
-const userRole = computed(() => authStore.user?.role || '')
-const canEdit = computed(() => userRole.value === 'Admin' || userRole.value === 'ITAgent')
+// Gerekli araçlar
+const route = useRoute();
+const requestId = route.params.id;
+const authStore = useAuthStore();
+const { $api } = useNuxtApp();
+const toast = useToast();
 
-const request = ref(null)
-const pending = ref(true)
-const error = ref(false)
-const isSubmitting = ref(false)
-const newComment = ref('')
-const selectedStatus = ref('')
-// 'assignedTo' alanı olmadığı için bu satır şimdilik işlevsiz
-const selectedAssigneeId = ref('') 
-const itAgents = ref([])
+// State'ler
+const request = ref(null);
+const isSubmitting = ref(false);
 
-const fetchRequest = async () => {
-  pending.value = true
+const canEdit = computed(() => ['Admin', 'ITAgent'].includes(authStore.user?.role));
+
+const formState = reactive({
+  status: '',
+  rejectionReason: ''
+});
+
+// --- DURUM SEÇENEKLERİ VE HARİTASI (TÜRKÇELEŞTİRME İÇİN) ---
+const statusOptions = [
+  { value: 'PendingApproval', label: 'Onay Bekliyor' },
+  { value: 'Approved', label: 'Onaylandı' },
+  { value: 'Rejected', label: 'Reddedildi' },
+  { value: 'Ordered', label: 'Sipariş Edildi' },
+  { value: 'Delivered', label: 'Teslim Edildi' }
+];
+
+const statusMap = {
+  PendingApproval: { label: 'Onay Bekliyor', color: 'amber' },
+  Approved: { label: 'Onaylandı', color: 'blue' },
+  Rejected: { label: 'Reddedildi', color: 'red' },
+  Ordered: { label: 'Sipariş Edildi', color: 'purple' },
+  Delivered: { label: 'Teslim Edildi', color: 'green' }
+};
+
+// --- VERİ ÇEKME VE YÖNETİMİ ---
+const { data, pending, error, refresh } = useAsyncData(
+  `device-request-${requestId}`,
+  () => $api(`/devicerequests/${requestId}`),
+  { lazy: true, server: false }
+);
+
+watch(data, (newData) => {
+  if (newData && newData.success) {
+    request.value = newData.data;
+    formState.status = newData.data.status;
+    formState.rejectionReason = '';
+  }
+}, { immediate: true });
+
+// --- FORM GÖNDERME FONKSİYONU ---
+const submitUpdate = async () => {
+  isSubmitting.value = true;
   try {
-    const result = await $fetch(`/api/devicerequests/${requestId}`, {
-        credentials: 'include'
-    })
-    if (result.success) {
-      request.value = result.data
-      selectedStatus.value = result.data.status
-      // assignedTo alanı olmadığı için bu satır hata verebilir, yoruma alalım
-      // selectedAssigneeId.value = result.data.assignedTo?._id || ''
-    } else {
-      error.value = true
-    }
-  } catch (e) {
-    console.error('Talep getirme hatası:', e)
-    error.value = true
-  } finally {
-    pending.value = false
-  }
-}
+    const updates = {
+      status: formState.status,
+      ...(formState.status === 'Rejected' && formState.rejectionReason.trim() && { rejectionReason: formState.rejectionReason.trim() })
+    };
 
-// Bu fonksiyon da 'assignedTo' olmadığı için şimdilik gereksiz, ama gelecekte kullanılabilir.
-const fetchITAgents = async () => {
-  try {
-    const data = await $fetch(`/api/users?role=Admin,ITAgent`, {
-        credentials: 'include'
-    })
-    if (data.success) {
-      itAgents.value = data.data
-    }
-  } catch (err) {
-    console.error('IT agent listesi alınamadı:', err)
-  }
-}
-
-const submitAll = async () => {
-  isSubmitting.value = true
-  const updates = {}
-
-  // Backend'deki PUT endpoint'i sadece 'status' ve 'rejectionReason' alıyor.
-  // Bu yüzden gönderilecek veriyi ona göre düzenlemeliyiz.
-
-  if (selectedStatus.value && selectedStatus.value !== request.value.status) {
-    updates.status = selectedStatus.value
-  }
-
-  // Yorumu 'rejectionReason' olarak gönderelim (eğer status 'Rejected' ise)
-  if (newComment.value.trim() && selectedStatus.value === 'Rejected') {
-    updates.rejectionReason = newComment.value.trim()
-  }
-
-  // Backend'e 'assignedTo' ve 'comment' gönderme özelliği eklenene kadar bu kısımlar işe yaramaz.
-  /*
-  if (selectedAssigneeId.value && selectedAssigneeId.value !== (request.value.assignedTo?._id || '')) {
-    updates.assignedTo = selectedAssigneeId.value
-  }
-  */
-
-  try {
-    if (Object.keys(updates).length === 0) {
-      alert('Kaydedilecek bir değişiklik yok.')
-      isSubmitting.value = false;
-      return
+    if (updates.status === request.value.status && !updates.rejectionReason) {
+      toast.add({ title: 'Bilgi', description: 'Kaydedilecek bir değişiklik yok.', color: 'orange' });
+      return;
     }
 
-    await $fetch(`/api/devicerequests/${requestId}`, {
+    await $api(`/devicerequests/${requestId}`, {
       method: 'PUT',
-      body: updates,
-      credentials: 'include'
-    })
+      body: updates
+    });
 
-    newComment.value = ''
-    await fetchRequest() // Veriyi tazelemek için
+    toast.add({ title: 'Başarılı!', description: 'Talep durumu güncellendi.', icon: 'i-heroicons-check-circle' });
+    await refresh();
+    
   } catch (err) {
-    console.error('Güncelleme hatası:', err)
-    alert('Güncelleme sırasında bir hata oluştu.')
+    toast.add({ title: "Hata!", description: err.data?.message || "Güncelleme sırasında bir hata oluştu.", color: 'red', icon: 'i-heroicons-x-circle' });
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 
-const formatDateTime = (d) => d ? new Date(d).toLocaleString('tr-TR') : 'Bilinmiyor'
+const formatDateTime = (d) => d ? new Date(d).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Bilinmiyor';
 
-onMounted(async () => {
-  await authStore.fetchUser()
-  await fetchRequest()
-  if (canEdit.value) {
-    // await fetchITAgents() // `assignedTo` özelliği eklenene kadar çağırmaya gerek yok.
+onMounted(() => {
+  if (!authStore.user) {
+    authStore.fetchUser();
   }
-})
+});
 </script>
+
+<style scoped>
+/* Bu alanın boş olması, Nuxt UI ve Tailwind'in gücünü gösterir. */
+</style>
