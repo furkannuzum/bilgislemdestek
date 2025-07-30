@@ -2,7 +2,7 @@
   <div class="w-full max-w-3xl mx-auto px-2 py-8">
     <!-- Başlık ve Açıklama -->
     <div>
-      <h1 class="text-3xl font-bold text-gray-800">Ayarlar</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Ayarlar</h1>
       <p class="mt-1 text-gray-500">
         Profil bilgilerinizi ve hesap ayarlarınızı buradan yönetebilirsiniz.
       </p>
@@ -62,14 +62,13 @@
             </div>
           </UFormGroup>
           <UButton
-  type="submit"
-  :loading="isProfileLoading"
-  size="lg"
-  class="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-5 py-3 text-center transition-colors disabled:opacity-50 shadow"
->
-  Profili Güncelle
-</UButton>
-
+            type="submit"
+            :loading="isProfileLoading"
+            size="lg"
+            class="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-5 py-3 text-center transition-colors disabled:opacity-50 shadow"
+          >
+            Profili Güncelle
+          </UButton>
         </UForm>
       </UCard>
 
@@ -122,13 +121,13 @@
             </div>
           </UFormGroup>
           <UButton
-  type="submit"
-  :loading="isPasswordLoading"
-  size="lg"
-  class="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-5 py-3 text-center transition-colors disabled:opacity-50 shadow"
->
-  Şifreyi Güncelle
-</UButton>
+            type="submit"
+            :loading="isPasswordLoading"
+            size="lg"
+            class="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-5 py-3 text-center transition-colors disabled:opacity-50 shadow"
+          >
+            Şifreyi Güncelle
+          </UButton>
         </UForm>
       </UCard>
 
@@ -138,19 +137,21 @@
           <h3 class="text-lg font-semibold">Bildirim Ayarları</h3>
         </template>
         <div class="space-y-5 max-w-lg">
+          <!-- İstenen Değişiklik 1: v-model eklendi -->
           <div class="flex items-center justify-between p-4 border rounded-xl">
             <div>
               <p class="font-medium">Yeni Talep Bildirimleri</p>
               <p class="text-sm text-gray-500">Bir talep oluşturulduğunda e-posta al.</p>
             </div>
-            <UToggle size="lg" />
+            <UToggle v-model="notificationState.newTicket" size="lg" />
           </div>
+          <!-- İstenen Değişiklik 2: v-model eklendi -->
           <div class="flex items-center justify-between p-4 border rounded-xl">
             <div>
               <p class="font-medium">Durum Güncelleme Bildirimleri</p>
               <p class="text-sm text-gray-500">Talebinizin durumu değiştiğinde e-posta al.</p>
             </div>
-            <UToggle size="lg" />
+            <UToggle v-model="notificationState.statusUpdate" size="lg" />
           </div>
         </div>
       </UCard>
@@ -239,4 +240,14 @@ async function handleUpdatePassword(event) {
     isPasswordLoading.value = false
   }
 }
+
+// --- İSTENEN DEĞİŞİKLİK 3: Bildirimler için state eklendi ---
+const notificationState = reactive({
+  newTicket: false,
+  statusUpdate: false
+});
+
+// Burada, normalde bu ayarları backend'den çeker ve değişiklik olduğunda kaydedersiniz.
+// Örn: onMounted(() => { notificationState.newTicket = authStore.user.settings.newTicketNotification ... })
+// Örn: watch(notificationState, (newValue) => { saveNotificationSettings(newValue) })
 </script>

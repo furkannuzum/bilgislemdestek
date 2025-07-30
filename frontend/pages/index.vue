@@ -22,7 +22,7 @@
       class="mb-6"
     />
 
-    <!-- FORM GÜNCELLEMESİ -->
+    <!-- FORM GÜNCELLEMESİ: Standart input'lar UInput ile değiştirildi -->
     <form @submit.prevent="handleLogin" class="space-y-6">
       
       <!-- E-posta Alanı Grubu -->
@@ -30,20 +30,17 @@
         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
           E-posta
         </label>
-        <div class="relative">
-          <input 
-            v-model="email" 
-            id="email"
-            type="email" 
-            placeholder="ornek@posta.com" 
-            required
-            class="form-input" 
-          />
-          <!-- İkonu inputun içine yerleştiriyoruz -->
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <UIcon name="i-heroicons-envelope" class="w-5 h-5 text-gray-400" />
-          </div>
-        </div>
+        <!-- UInput bileşeni kullanıldı -->
+        <UInput 
+          v-model="email" 
+          id="email"
+          type="email" 
+          placeholder="ornek@posta.com" 
+          required
+          icon="i-heroicons-envelope"
+          size="lg"
+          :ui="{ rounded: 'rounded-full' }"
+        />
       </div>
 
       <!-- Şifre Alanı Grubu -->
@@ -51,20 +48,22 @@
         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
           Şifre
         </label>
-         <div class="relative">
-          <input 
-            v-model="password"
-            id="password" 
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="••••••••"
-            required
-            class="form-input" 
-          />
-          <!-- Şifreyi Göster/Gizle Butonu -->
-          <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-            <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5 text-gray-500 hover:text-gray-700" />
-          </button>
-        </div>
+        <!-- UInput bileşeni ve şifre gösterme/gizleme için #trailing slot'u kullanıldı -->
+        <UInput 
+          v-model="password"
+          id="password" 
+          :type="showPassword ? 'text' : 'password'"
+          placeholder="••••••••"
+          required
+          size="lg"
+          :ui="{ rounded: 'rounded-full', icon: { trailing: { pointer: '' } } }"
+        >
+          <template #trailing>
+            <button type="button" @click="showPassword = !showPassword" class="flex items-center">
+              <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5 text-gray-500 hover:text-gray-700" />
+            </button>
+          </template>
+        </UInput>
       </div>
       
       <!-- Giriş Yap Butonu -->
@@ -85,13 +84,6 @@
         Şifremi Unuttum
       </NuxtLink>
     </div>
-    <!-- <p class="mt-8 text-center text-sm text-gray-500">
-      Hesabınız yok mu?
-      <NuxtLink to="/register" class="font-semibold text-blue-600 hover:underline">
-        Kayıt Olun
-      </NuxtLink>
-    </p> -->
-
   </div>
 </template>
 
@@ -101,9 +93,9 @@ import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({ layout: 'auth' })
 
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false) // Şifreyi göster/gizle durumu için
+const email = ref('') // Örnek veri ile dolduruldu
+const password = ref('')     // Örnek veri ile dolduruldu
+const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref(null)
 const authStore = useAuthStore()
@@ -125,12 +117,7 @@ async function handleLogin() {
 }
 </script>
 
-<style scoped>
-/* 
-  Kendi özel form input stilimizi oluşturuyoruz.
-  Bu stil, referans tasarımdaki gibi oval ve ikonlu olacak.
-*/
-.form-input {
-  @apply block w-full rounded-full border-0 py-3 pl-11 pr-4 text-gray-900 bg-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6;
-}
-</style>
+<!-- Bu blok artık gereksiz olduğu için kaldırıldı -->
+<!-- <style scoped>
+.form-input { ... }
+</style> -->

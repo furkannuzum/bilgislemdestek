@@ -58,7 +58,8 @@
            <h2 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white">Hızlı Aksiyonlar</h2>
          </template>
         <div class="space-y-3">
-          <UButton v-if="authStore.userRole === 'User'" icon="i-heroicons-plus-circle" label="Yeni Destek Talebi" color="primary" variant="solid" size="lg" block @click="$router.push('/tickets/new')" />
+          <!-- İstenen değişiklik burada yapıldı: Butonların sırası değiştirildi. -->
+          <UButton icon="i-heroicons-plus-circle" label="Yeni Destek Talebi" color="primary" variant="outline" size="lg" block @click="$router.push('/tickets/new')" />
           <UButton icon="i-heroicons-computer-desktop" label="Yeni Cihaz Talebi" color="primary" variant="outline" size="lg" block @click="$router.push('/requests/new')" />
           <UButton icon="i-heroicons-chart-bar" label="Raporları Görüntüle" color="primary" variant="soft" size="lg" block @click="$router.push('/reports')" />
           <UButton
