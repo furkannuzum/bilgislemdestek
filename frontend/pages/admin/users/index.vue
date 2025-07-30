@@ -219,5 +219,3 @@ async function deleteUser(userId: string, userName: string) {
 
 onMounted(fetchAllData);
 </script>
-
-<style scoped></style>

@@ -96,7 +96,9 @@ const navigation = computed(() => [
   { label: "Dashboard", icon: "i-heroicons-home", to: "/dashboard" },
   { label: "Destek Talepleri", icon: "i-heroicons-ticket", to: "/tickets" },
   { label: "Cihaz Talepleri", icon: "i-heroicons-computer-desktop", to: "/requests" },
-  ...(authStore.userRole === 'Admin' || authStore.userRole === 'ITAgent' ? [{ label: 'Kullanıcı Yönetimi', icon: 'i-heroicons-users', to: '/admin/users' }] : [])
+  ...(authStore.userRole === 'Admin' || authStore.userRole === 'ITAgent' ? [{ label: 'Kullanıcı Yönetimi', icon: 'i-heroicons-users', to: '/admin/users' }
+    ,{ label: 'Raporlar', icon: 'i-heroicons-chart-bar', to: '/reports' } 
+  ] : [])
 ]);
 
 // Çıkış yapma fonksiyonu
